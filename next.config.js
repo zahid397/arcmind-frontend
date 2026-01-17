@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // 🔥 THIS FIXES VERCEL BUILD STUCK
-  output: 'standalone',
-
   images: {
     remotePatterns: [
       {
