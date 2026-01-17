@@ -1,0 +1,106 @@
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 20 14% 4%;
+    --foreground: 0 0% 95%;
+    --card: 24 9% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 142 70% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 12 6% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 142 70% 45%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-compost-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neon-green/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neon-green/50;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-neon-cyan via-neon-green to-neon-blue;
+  }
+
+  .border-glow {
+    @apply relative;
+  }
+
+  .border-glow::before {
+    content: '';
+    @apply absolute -inset-[1px] bg-gradient-to-r from-neon-cyan via-neon-green to-neon-blue rounded-lg blur-sm opacity-50 -z-10;
+  }
+
+  .neon-shadow {
+    box-shadow: 
+      0 0 10px theme('colors.neon.green'),
+      0 0 20px theme('colors.neon.green'),
+      0 0 30px theme('colors.neon.green'),
+      inset 0 0 20px theme('colors.neon.green/20%');
+  }
+
+  .neon-shadow-blue {
+    box-shadow: 
+      0 0 10px theme('colors.neon.blue'),
+      0 0 20px theme('colors.neon.blue'),
+      0 0 30px theme('colors.neon.blue'),
+      inset 0 0 20px theme('colors.neon.blue/20%');
+  }
+
+  .neon-text {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/5 border border-white/10;
+  }
+
+  .chat-bubble-user {
+    animation: chat-bubble 0.3s ease-out;
+  }
+
+  .chat-bubble-ai {
+    animation: chat-bubble 0.5s ease-out;
+  }
+}
