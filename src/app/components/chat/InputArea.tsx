@@ -2,11 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Send, Smile, Image as ImageIcon, Zap, Paperclip, 
-  Mic, StopCircle, Brain, X
+import {
+  Send,
+  Smile,
+  Image as ImageIcon,
+  Zap,
+  Paperclip,
+  Mic,
+  StopCircle,
+  Brain,
+  X,
 } from 'lucide-react';
-import { cn, debounce } from '@/app/lib/utils';
+import { cn, debounce } from '@/lib/utils'; // ✅ FIXED PATH
 import { toast } from 'react-hot-toast';
 
 interface InputAreaProps {
@@ -21,10 +28,10 @@ const QUICK_ACTIONS = [
   { icon: Zap, label: 'Blockchain', prompt: 'Create a blockchain transaction for ' },
 ];
 
-export default function InputArea({ 
-  onSendMessage, 
+export default function InputArea({
+  onSendMessage,
   isLoading,
-  onAttachment 
+  onAttachment,
 }: InputAreaProps) {
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -59,11 +66,9 @@ export default function InputArea({
 
   const handleRecording = () => {
     if (!isRecording) {
-      // Start recording
       setIsRecording(true);
       toast.success('Recording started');
     } else {
-      // Stop recording
       setIsRecording(false);
       toast.success('Recording stopped');
     }
@@ -76,24 +81,25 @@ export default function InputArea({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      setAttachments(prev => [...prev, ...files]);
+      setAttachments((prev) => [...prev, ...files]);
       toast.success(`${files.length} file(s) attached`);
+      onAttachment?.(files[0]);
     }
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleQuickAction = (prompt: string) => {
-    setInput(prev => prev + prompt);
+    setInput((prev) => prev + prompt);
     setShowQuickActions(false);
     textareaRef.current?.focus();
   };
 
   // Debounced input handler
   const debouncedInputChange = debounce((value: string) => {
-    // You can add auto-save or other features here
+    // future autosave / hints
   }, 1000);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -163,9 +169,7 @@ export default function InputArea({
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 border border-border"
               >
                 <Paperclip className="w-4 h-4" />
-                <span className="text-sm truncate max-w-[100px]">
-                  {file.name}
-                </span>
+                <span className="text-sm truncate max-w-[100px]">{file.name}</span>
                 <button
                   onClick={() => removeAttachment(index)}
                   className="p-0.5 rounded hover:bg-destructive/10 text-destructive"
@@ -181,37 +185,33 @@ export default function InputArea({
       {/* Main Input Area */}
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative">
-          {/* Background Glow */}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl" />
 
-          {/* Textarea */}
           <textarea
             ref={textareaRef}
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask ArcMind anything..."
-            className="relative w-full p-4 pl-14 pr-36 bg-background/80 backdrop-blur-lg 
-                     border-2 border-border rounded-2xl focus:outline-none 
-                     focus:border-primary/50 focus:ring-2 focus:ring-primary/20 
-                     resize-none min-h-[60px] max-h-48 text-sm leading-relaxed
-                     placeholder:text-muted-foreground/50"
+            className="relative w-full p-4 pl-14 pr-36 bg-background/80 backdrop-blur-lg
+              border-2 border-border rounded-2xl focus:outline-none
+              focus:border-primary/50 focus:ring-2 focus:ring-primary/20
+              resize-none min-h-[60px] max-h-48 text-sm leading-relaxed
+              placeholder:text-muted-foreground/50"
             rows={1}
             disabled={isLoading}
           />
 
           {/* Left Icons */}
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <motion.button
               type="button"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowQuickActions(!showQuickActions)}
               className={cn(
-                "p-2 rounded-full transition-colors",
-                showQuickActions 
-                  ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-secondary"
+                'p-2 rounded-full transition-colors',
+                showQuickActions ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
               )}
             >
               <Zap className="w-4 h-4" />
@@ -229,7 +229,7 @@ export default function InputArea({
           </div>
 
           {/* Right Icons */}
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <motion.button
               type="button"
               whileHover={{ scale: 1.1 }}
@@ -245,17 +245,13 @@ export default function InputArea({
               whileTap={{ scale: 0.9 }}
               onClick={handleRecording}
               className={cn(
-                "p-2 rounded-full transition-colors",
+                'p-2 rounded-full transition-colors',
                 isRecording
-                  ? "bg-destructive text-destructive-foreground animate-pulse"
-                  : "hover:bg-secondary"
+                  ? 'bg-destructive text-destructive-foreground animate-pulse'
+                  : 'hover:bg-secondary'
               )}
             >
-              {isRecording ? (
-                <StopCircle className="w-4 h-4" />
-              ) : (
-                <Mic className="w-4 h-4" />
-              )}
+              {isRecording ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </motion.button>
 
             <motion.button
@@ -264,10 +260,10 @@ export default function InputArea({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className={cn(
-                "p-2.5 rounded-xl transition-all duration-300",
+                'p-2.5 rounded-xl transition-all duration-300',
                 input.trim() && !isLoading
-                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl"
-                  : "bg-secondary text-muted-foreground cursor-not-allowed"
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-secondary text-muted-foreground cursor-not-allowed'
               )}
             >
               {isLoading ? (
@@ -279,26 +275,15 @@ export default function InputArea({
           </div>
         </div>
 
-        {/* Character Counter & Actions */}
         <div className="flex items-center justify-between mt-2 px-2">
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <button
-              type="button"
-              className="hover:text-foreground transition-colors"
-              onClick={() => setInput(prev => prev + '```code```')}
-            >
+            <button type="button" className="hover:text-foreground" onClick={() => setInput((p) => p + '```code```')}>
               Code block
             </button>
-            <button
-              type="button"
-              className="hover:text-foreground transition-colors"
-              onClick={() => setInput(prev => prev + '**bold**')}
-            >
+            <button type="button" className="hover:text-foreground" onClick={() => setInput((p) => p + '**bold**')}>
               Markdown
             </button>
-            <span className={cn(
-              input.length > 4000 ? "text-destructive" : ""
-            )}>
+            <span className={cn(input.length > 4000 ? 'text-destructive' : '')}>
               {input.length}/4000
             </span>
           </div>
@@ -308,7 +293,6 @@ export default function InputArea({
         </div>
       </form>
 
-      {/* Hidden File Input */}
       <input
         ref={fileInputRef}
         type="file"
