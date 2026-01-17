@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ChatContainer from './components/chat/ChatContainer';
 import InputArea from './components/chat/InputArea';
@@ -16,9 +16,11 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
 
   const handleSendMessage = useCallback(async (content: string) => {
+    if (!content.trim()) return;
+
     if (showWelcome) setShowWelcome(false);
 
     const userMessage: Message = {
@@ -33,10 +35,10 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const res = await gateway.chat(content, sessionId || undefined);
+      const res = await gateway.chat(content, sessionId);
 
       if (res.success && res.data) {
-        const aiMessage: Message = {
+        const assistantMessage: Message = {
           id: generateId(),
           role: 'assistant',
           content: res.data.message,
@@ -46,16 +48,20 @@ export default function Home() {
 
         setMessages(prev =>
           prev.map(m =>
-            m.id === userMessage.id ? { ...m, status: 'delivered' } : m
-          ).concat(aiMessage)
+            m.id === userMessage.id
+              ? { ...m, status: 'delivered' }
+              : m
+          ).concat(assistantMessage)
         );
 
         if (!sessionId && res.data.sessionId) {
           setSessionId(res.data.sessionId);
         }
       }
-    } catch {
-      toast.error('Message failed');
+    } catch (err) {
+      console.error(err);
+      toast.error('Message send failed');
+
       setMessages(prev =>
         prev.map(m =>
           m.id === userMessage.id ? { ...m, status: 'error' } : m
@@ -70,28 +76,44 @@ export default function Home() {
     <div className="relative h-full">
       <AnimatedBackground />
 
-      {showWelcome && messages.length === 0 ? (
-        <WelcomeScreen onStartChat={() => setShowWelcome(false)} />
-      ) : (
-        <>
-          <ChatContainer messages={messages} isLoading={isLoading} />
-          <InputArea onSendMessage={handleSendMessage} isLoading={isLoading} />
-        </>
-      )}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="relative h-full flex flex-col"
+      >
+        {showWelcome && messages.length === 0 ? (
+          <WelcomeScreen onStartChat={() => setShowWelcome(false)} />
+        ) : (
+          <>
+            <ChatContainer
+              messages={messages}
+              isLoading={isLoading}
+            />
+
+            <div className="border-t bg-background/80 backdrop-blur">
+              <div className="mx-auto max-w-4xl p-4">
+                <InputArea
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </motion.div>
     </div>
   );
 }
 
-/* 🔥 SAFE Animated Background */
-function AnimatedBackground() {
-  const [mounted, setMounted] = useState(false);
+/* ================= SAFE CLIENT-ONLY BACKGROUND ================= */
 
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+function AnimatedBackground() {
+  if (typeof window === 'undefined') return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none">
-      {Array.from({ length: 15 }).map((_, i) => (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {Array.from({ length: 16 }).map((_, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 bg-primary/30 rounded-full"
@@ -104,7 +126,7 @@ function AnimatedBackground() {
             y: Math.random() * window.innerHeight,
           }}
           transition={{
-            duration: 20,
+            duration: Math.random() * 10 + 10,
             repeat: Infinity,
             repeatType: 'reverse',
           }}
