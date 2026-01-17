@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Search, Settings, User, Zap, Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils'; // ✅ FIXED IMPORT
 import { toast } from 'react-hot-toast';
+
+// ✅ CORRECT & FINAL PATH
+import { cn } from '@/app/lib/utils';
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -13,9 +15,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -45,7 +45,7 @@ export default function Header() {
             transition={{ type: 'spring', stiffness: 400 }}
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-75 animate-pulse-glow" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-75" />
               <div className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg">
                 <Zap className="w-6 h-6 text-white" />
               </div>
@@ -96,7 +96,7 @@ export default function Header() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNotificationClick}
-                className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
+                className="relative p-2 rounded-lg hover:bg-secondary"
               >
                 <Bell className="w-5 h-5" />
                 {notifications > 0 && (
@@ -113,21 +113,18 @@ export default function Header() {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-lg hover:bg-secondary transition-colors"
+                className="p-2 rounded-lg hover:bg-secondary"
               >
                 <Settings className="w-5 h-5" />
               </motion.button>
 
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary cursor-pointer"
-              >
+              <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary cursor-pointer">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full" />
                 <span className="text-sm font-medium">zahid397</span>
-              </motion.div>
+              </div>
             </div>
 
-            {/* Mobile menu */}
+            {/* Mobile */}
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -139,7 +136,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
