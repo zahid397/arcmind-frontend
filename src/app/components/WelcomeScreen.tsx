@@ -1,11 +1,17 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { 
-  Zap, Brain, Lock, Sparkles, MessageSquare, 
-  Code, Image as ImageIcon, Globe
+import {
+  Zap,
+  Brain,
+  Lock,
+  Sparkles,
+  MessageSquare,
+  Code,
+  Image as ImageIcon,
+  Globe,
 } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button'; // ✅ FIXED
 
 const FEATURES = [
   { icon: Brain, title: 'Advanced AI', description: 'Powered by Groq & Gemini' },
@@ -47,17 +53,13 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
               Welcome to ArcMind
             </span>
           </h1>
-          
+
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Your production-grade AI assistant with blockchain integration, 
+            Your production-grade AI assistant with blockchain integration,
             advanced reasoning, and enterprise features.
           </p>
 
-          <Button
-            size="lg"
-            onClick={onStartChat}
-            className="group"
-          >
+          <Button size="lg" onClick={onStartChat} className="group">
             <MessageSquare className="w-5 h-5" />
             <span>Start Chatting</span>
             <motion.div
@@ -70,7 +72,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
           </Button>
         </motion.div>
 
-        {/* Features Grid */}
+        {/* Features */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -97,7 +99,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
           ))}
         </motion.div>
 
-        {/* Example Prompts */}
+        {/* Example prompts */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -108,6 +110,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
             <Sparkles className="w-5 h-5 text-yellow-500" />
             Try asking me...
           </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
             {EXAMPLE_PROMPTS.map((prompt, index) => (
               <motion.button
@@ -117,7 +120,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
                 transition={{ delay: 0.5 + index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => onStartChat()}
+                onClick={onStartChat}
                 className="p-3 text-left rounded-lg bg-secondary/30 hover:bg-secondary/50 border border-border/30 transition-colors text-sm"
               >
                 {prompt}
@@ -126,14 +129,13 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
           </div>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="mt-8 text-center text-sm text-muted-foreground"
         >
-          <p>Powered by Advanced AI Models • End-to-End Encrypted • 99.9% Uptime</p>
+          Powered by Advanced AI Models • End-to-End Encrypted • 99.9% Uptime
         </motion.div>
       </div>
     </div>
