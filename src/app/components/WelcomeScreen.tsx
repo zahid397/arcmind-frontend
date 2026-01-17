@@ -11,7 +11,9 @@ import {
   Image as ImageIcon,
   Globe,
 } from 'lucide-react';
-import Button from '@/components/ui/Button'; // ✅ FIXED
+
+// ✅ CORRECT IMPORT (MOST IMPORTANT)
+import Button from '@/app/components/ui/Button';
 
 const FEATURES = [
   { icon: Brain, title: 'Advanced AI', description: 'Powered by Groq & Gemini' },
@@ -38,6 +40,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
   return (
     <div className="h-full flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -72,7 +75,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
           </Button>
         </motion.div>
 
-        {/* Features */}
+        {/* FEATURES */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -99,7 +102,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
           ))}
         </motion.div>
 
-        {/* Example prompts */}
+        {/* EXAMPLE PROMPTS */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -137,6 +140,7 @@ export default function WelcomeScreen({ onStartChat }: WelcomeScreenProps) {
         >
           Powered by Advanced AI Models • End-to-End Encrypted • 99.9% Uptime
         </motion.div>
+
       </div>
     </div>
   );
