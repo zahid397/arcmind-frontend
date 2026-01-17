@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
-import './globals.css';
-import Header from './components/layout/Header';
-import Sidebar from './components/layout/Sidebar';
+import '@/app/globals.css';
+
+import Header from '@/components/layout/Header';
+import Sidebar from '@/components/layout/Sidebar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -40,22 +41,18 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <div className="relative flex min-h-screen">
-          {/* Gradient Background */}
+          {/* Background layers */}
           <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-gray-900" />
           <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
-          
-          {/* Grid Pattern */}
           <div className="fixed inset-0 bg-grid-pattern bg-[size:100px_100px] opacity-5" />
 
           <Sidebar />
           <div className="flex-1 flex flex-col">
             <Header />
-            <main className="flex-1 relative">
-              {children}
-            </main>
+            <main className="flex-1 relative">{children}</main>
           </div>
         </div>
-        
+
         <Toaster
           position="top-right"
           toastOptions={{
