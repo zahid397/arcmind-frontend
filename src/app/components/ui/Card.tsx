@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { cn } from '@/app/lib/utils';
+import { cn } from '@/lib/utils'; // ✅ FIXED
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,11 +10,11 @@ interface CardProps {
   borderGradient?: boolean;
 }
 
-export default function Card({ 
-  children, 
-  className, 
+export default function Card({
+  children,
+  className,
   hoverEffect = true,
-  borderGradient = false 
+  borderGradient = false,
 }: CardProps) {
   return (
     <motion.div
@@ -22,8 +22,8 @@ export default function Card({
       animate={{ opacity: 1, y: 0 }}
       whileHover={hoverEffect ? { scale: 1.02 } : {}}
       className={cn(
-        "rounded-xl border bg-card text-card-foreground shadow-sm",
-        borderGradient && "gradient-border",
+        'rounded-xl border bg-card text-card-foreground shadow-sm',
+        borderGradient && 'gradient-border',
         className
       )}
     >
