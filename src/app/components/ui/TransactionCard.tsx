@@ -1,9 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Transaction } from '@/app/types';
-import { ExternalLink, CheckCircle, Clock, XCircle, TrendingUp } from 'lucide-react';
-import { cn, formatCurrency } from '@/app/lib/utils';
+import { Transaction } from '@/types'; // ✅ FIXED
+import {
+  ExternalLink,
+  CheckCircle,
+  Clock,
+  XCircle,
+  TrendingUp,
+} from 'lucide-react';
+import { cn, formatCurrency } from '@/lib/utils'; // ✅ FIXED
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -39,27 +45,35 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
       className={cn(
-        "rounded-xl border p-4",
+        'rounded-xl border p-4',
         STATUS_CONFIG[transaction.status].border
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={cn(
-            "p-2 rounded-lg",
-            STATUS_CONFIG[transaction.status].bg
-          )}>
+          <div
+            className={cn(
+              'p-2 rounded-lg',
+              STATUS_CONFIG[transaction.status].bg
+            )}
+          >
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
             <h4 className="font-medium">Blockchain Transaction</h4>
             <p className="text-sm text-muted-foreground">
-              {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+              {transaction.status.charAt(0).toUpperCase() +
+                transaction.status.slice(1)}
             </p>
           </div>
         </div>
-        <StatusIcon className={cn("w-5 h-5", STATUS_CONFIG[transaction.status].color)} />
+        <StatusIcon
+          className={cn(
+            'w-5 h-5',
+            STATUS_CONFIG[transaction.status].color
+          )}
+        />
       </div>
 
       {/* Amount */}
@@ -99,16 +113,16 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
           </div>
           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
             <motion.div
-              initial={{ width: "0%" }}
-              animate={{ width: "60%" }}
-              transition={{ duration: 30, ease: "linear" }}
+              initial={{ width: '0%' }}
+              animate={{ width: '60%' }}
+              transition={{ duration: 30, ease: 'linear' }}
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
             />
           </div>
         </div>
       )}
 
-      {/* View on Explorer Button */}
+      {/* Explorer Button */}
       <motion.a
         href={transaction.explorer_url}
         target="_blank"
