@@ -8,12 +8,12 @@ import {
   Trash2,
   Clock,
   ChevronRight,
-  Zap,
 } from 'lucide-react';
 
-import { cn } from '@/lib/utils';          // ✅ FIX
-import { ChatSession } from '@/types';     // ✅ FIX
-import { gateway } from '@/lib/gateway';   // ✅ FIX
+// ✅ CORRECT ALIASES (VERY IMPORTANT)
+import { cn } from '@/app/lib/utils';
+import { ChatSession } from '@/app/types';
+import { gateway } from '@/app/lib/gateway';
 
 export default function Sidebar() {
   const [sessions, setSessions] = useState<ChatSession[]>([
@@ -50,15 +50,15 @@ export default function Sidebar() {
   const handleCreateSession = async () => {
     setLoading(true);
     try {
-      const response = await gateway.createSession(
+      const res = await gateway.createSession(
         `New Chat ${sessions.length + 1}`
       );
-      if (response?.success) {
-        setSessions((prev) => [response.data, ...prev]);
-        setSelectedId(response.data.id);
+      if (res?.success) {
+        setSessions(prev => [res.data, ...prev]);
+        setSelectedId(res.data.id);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Create session failed', err);
     } finally {
       setLoading(false);
     }
@@ -71,12 +71,12 @@ export default function Sidebar() {
     e.stopPropagation();
     try {
       await gateway.deleteSession(id);
-      setSessions((prev) => prev.filter((s) => s.id !== id));
+      setSessions(prev => prev.filter(s => s.id !== id));
       if (selectedId === id) {
-        setSelectedId(sessions[0]?.id || '');
+        setSelectedId(prev => prev === id ? sessions[0]?.id ?? '' : prev);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Delete session failed', err);
     }
   };
 
@@ -84,14 +84,16 @@ export default function Sidebar() {
     const diff = Date.now() - timestamp;
     const date = new Date(timestamp);
 
-    if (diff < 86400000)
+    if (diff < 86400000) {
       return date.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
       });
+    }
 
-    if (diff < 604800000)
+    if (diff < 604800000) {
       return date.toLocaleDateString([], { weekday: 'short' });
+    }
 
     return date.toLocaleDateString([], {
       month: 'short',
@@ -103,6 +105,7 @@ export default function Sidebar() {
     <motion.aside
       initial={{ x: -300 }}
       animate={{ x: collapsed ? -280 : 0 }}
+      transition={{ type: 'spring', stiffness: 300 }}
       className={cn(
         'hidden md:flex flex-col h-screen border-r border-border bg-background/50',
         collapsed ? 'w-16' : 'w-64'
@@ -113,19 +116,21 @@ export default function Sidebar() {
         {!collapsed ? (
           <motion.button
             whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleCreateSession}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white disabled:opacity-50"
           >
             <Plus className="w-5 h-5" />
             New Chat
           </motion.button>
         ) : (
           <motion.button
+            whileHover={{ scale: 1.05 }}
             onClick={handleCreateSession}
             className="w-10 h-10 mx-auto flex items-center justify-center rounded-lg bg-primary text-white"
           >
-            <Plus />
+            <Plus className="w-5 h-5" />
           </motion.button>
         )}
       </div>
@@ -133,12 +138,17 @@ export default function Sidebar() {
       {/* Sessions */}
       <div className="flex-1 overflow-y-auto p-2">
         <AnimatePresence>
-          {sessions.map((session) => (
-            <motion.div key={session.id}>
+          {sessions.map(session => (
+            <motion.div
+              key={session.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+            >
               <div
                 onClick={() => setSelectedId(session.id)}
                 className={cn(
-                  'group p-3 rounded-lg cursor-pointer transition',
+                  'group p-3 rounded-lg cursor-pointer transition-all',
                   selectedId === session.id
                     ? 'bg-primary/10 border border-primary/20'
                     : 'hover:bg-secondary/50'
@@ -150,7 +160,7 @@ export default function Sidebar() {
                   </div>
 
                   {!collapsed && (
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {session.title}
                       </p>
@@ -163,7 +173,7 @@ export default function Sidebar() {
 
                   {!collapsed && (
                     <button
-                      onClick={(e) =>
+                      onClick={e =>
                         handleDeleteSession(session.id, e)
                       }
                       className="opacity-0 group-hover:opacity-100 text-destructive"
