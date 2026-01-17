@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils'; // ✅ FIXED
+import { cn } from '@/app/lib/utils'; // ✅ CORRECT PATH
 
 interface CardProps {
   children: React.ReactNode;
