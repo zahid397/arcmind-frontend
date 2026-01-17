@@ -6,21 +6,22 @@ import { Bot, Zap, Loader2 } from 'lucide-react'
 
 import WelcomeScreen from './components/WelcomeScreen'
 import ChatContainer from './components/chat/ChatContainer'
+import EffectsClient from './components/effects/EffectsClient'
 import { cn } from './lib/utils'
 
 export default function HomePage() {
   const [hasStarted, setHasStarted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [welcomeReady, setWelcomeReady] = useState(false)
+  const [ready, setReady] = useState(false)
   const [showToast, setShowToast] = useState(true)
 
-  // Initial splash delay (hydration safe)
+  // hydration-safe splash delay
   useEffect(() => {
-    const t = setTimeout(() => setWelcomeReady(true), 800)
+    const t = setTimeout(() => setReady(true), 600)
     return () => clearTimeout(t)
   }, [])
 
-  // Auto hide toast
+  // auto hide toast
   useEffect(() => {
     if (!hasStarted) return
     const t = setTimeout(() => setShowToast(false), 5000)
@@ -30,7 +31,6 @@ export default function HomePage() {
   const handleStartChat = async () => {
     setIsLoading(true)
 
-    // 🔒 safe timeout fetch
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3000)
 
@@ -46,7 +46,7 @@ export default function HomePage() {
       setTimeout(() => {
         setHasStarted(true)
         setIsLoading(false)
-      }, 600)
+      }, 500)
     }
   }
 
@@ -56,8 +56,8 @@ export default function HomePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Splash loader
-  if (!welcomeReady) {
+  // splash loader
+  if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <motion.div
@@ -72,6 +72,9 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen">
+      {/* 🔥 ALL ANIMATIONS HERE (SSR OFF) */}
+      <EffectsClient />
+
       <AnimatePresence mode="wait">
         {!hasStarted ? (
           <motion.div
@@ -89,8 +92,8 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            {/* Floating actions */}
-            <div className="fixed right-4 top-20 z-30 space-y-2">
+            {/* Floating action */}
+            <div className="fixed right-4 top-20 z-30">
               <button
                 onClick={handleReset}
                 className="rounded-full bg-compost-900 p-3 border border-compost-700 hover:border-neon-green"
