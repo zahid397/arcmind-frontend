@@ -1,11 +1,11 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 const config: Config = {
   darkMode: ['class'],
 
-  // ✅ ONLY what you actually use
   content: [
     './src/app/**/*.{ts,tsx}',
+    './src/app/components/**/*.{ts,tsx}',
     './src/components/**/*.{ts,tsx}',
   ],
 
@@ -20,11 +20,13 @@ const config: Config = {
 
     extend: {
       colors: {
+        /* ===== CSS VAR COLORS ===== */
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
@@ -32,10 +34,6 @@ const config: Config = {
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -45,13 +43,31 @@ const config: Config = {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+
+        /* ===== CUSTOM UI COLORS ===== */
+        neon: {
+          cyan: '#00ffff',
+          green: '#00ff00',
+          blue: '#0066ff',
+          pink: '#ff00ff',
+          yellow: '#ffff00',
+        },
+
+        compost: {
+          500: '#b8843d',
+          600: '#8f642e',
+          700: '#795927',
+          800: '#5c441c',
+          900: '#3a2b12',
+          950: '#1f1609',
         },
       },
 
@@ -66,6 +82,7 @@ const config: Config = {
         'accordion-up': 'accordion-up 0.2s ease-out',
         float: 'float 3s ease-in-out infinite',
         gradient: 'gradient 6s linear infinite',
+        shimmer: 'shimmer 2s linear infinite',
       },
 
       keyframes: {
@@ -85,6 +102,10 @@ const config: Config = {
           '0%,100%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
       },
     },
   },
@@ -92,8 +113,8 @@ const config: Config = {
   plugins: [
     require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
-    // ❌ REMOVE scrollbar (causes build hang)
+    // ❌ scrollbar plugin REMOVED (Vercel freeze cause)
   ],
-};
+}
 
-export default config;
+export default config
