@@ -1,8 +1,8 @@
-// ============================================
-// TYPES
-// ============================================
+/* ======================================================
+   TYPES
+====================================================== */
 
-export interface APIResponse<T> {
+export interface APIResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
@@ -33,36 +33,33 @@ export interface StreamChatOptions {
 
 export interface RequestOptions extends RequestInit {
   timeout?: number;
-  signal?: AbortSignal;
 }
 
-// ============================================
-// GATEWAY SERVICE
-// ============================================
+/* ======================================================
+   GATEWAY SERVICE
+====================================================== */
 
 export class GatewayService {
   private static instance: GatewayService | null = null;
 
   private baseURL: string;
-  private defaultHeaders: HeadersInit;
-  private requestMap = new Map<string, AbortController>();
+  private headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+
+  private requests = new Map<string, AbortController>();
 
   private constructor(baseURL: string) {
     this.baseURL = baseURL.replace(/\/$/, '');
-    this.defaultHeaders = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
   }
 
-  // ------------------------------------------
-  // SINGLETON
-  // ------------------------------------------
+  /* -------------------- SINGLETON -------------------- */
 
   static getInstance(baseURL?: string): GatewayService {
     if (!GatewayService.instance) {
       if (!baseURL) {
-        throw new Error('GatewayService requires baseURL on first initialization');
+        throw new Error('GatewayService requires baseURL on first call');
       }
       GatewayService.instance = new GatewayService(baseURL);
     }
@@ -70,101 +67,84 @@ export class GatewayService {
   }
 
   static destroy(): void {
-    GatewayService.instance?.abortAllRequests();
+    GatewayService.instance?.abortAll();
     GatewayService.instance = null;
   }
 
-  // ------------------------------------------
-  // INTERNAL HELPERS
-  // ------------------------------------------
+  /* -------------------- INTERNAL -------------------- */
 
-  private generateRequestId(): string {
+  private generateId(): string {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
       return crypto.randomUUID();
     }
-    return `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    return `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   }
 
-  private async parseResponse<T>(response: Response): Promise<APIResponse<T>> {
-    const isJson = response.headers
+  private async parse<T>(res: Response): Promise<APIResponse<T>> {
+    const isJson = res.headers
       .get('content-type')
       ?.includes('application/json');
 
-    if (!response.ok) {
-      let error = `${response.status} ${response.statusText}`;
-      try {
-        if (isJson) {
-          const body = await response.json();
-          error = body?.error || body?.message || error;
-        }
-      } catch {}
-      throw new Error(error);
+    if (!res.ok) {
+      let msg = `${res.status} ${res.statusText}`;
+      if (isJson) {
+        try {
+          const body = await res.json();
+          msg = body?.error || body?.message || msg;
+        } catch {}
+      }
+      return { success: false, error: msg };
     }
 
     if (!isJson) {
-      throw new Error('Expected JSON response');
+      return { success: false, error: 'Invalid response format' };
     }
 
-    return {
-      success: true,
-      data: (await response.json()) as T,
-    };
+    return { success: true, data: (await res.json()) as T };
   }
 
   private async request<T>(
-    endpoint: string,
+    path: string,
     options: RequestOptions = {}
   ): Promise<APIResponse<T>> {
-    const requestId = this.generateRequestId();
+    const id = this.generateId();
     const controller = new AbortController();
-
     const timeout = options.timeout ?? 30000;
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    if (options.signal) {
-      options.signal.addEventListener('abort', () => controller.abort(), {
-        once: true,
-      });
-    }
-
-    this.requestMap.set(requestId, controller);
+    const timer = setTimeout(() => controller.abort(), timeout);
+    this.requests.set(id, controller);
 
     try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
+      const res = await fetch(`${this.baseURL}${path}`, {
         ...options,
         headers: {
-          ...this.defaultHeaders,
-          'X-Request-ID': requestId,
+          ...this.headers,
           ...options.headers,
+          'X-Request-ID': id,
         },
         signal: controller.signal,
       });
 
-      return await this.parseResponse<T>(response);
+      return await this.parse<T>(res);
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        throw new Error('Request aborted');
+        return { success: false, error: 'Request timeout' };
       }
-      if (err instanceof TypeError) {
-        throw new Error('Network error');
-      }
-      throw err;
+      return { success: false, error: 'Network error' };
     } finally {
-      clearTimeout(timeoutId);
-      this.requestMap.delete(requestId);
+      clearTimeout(timer);
+      this.requests.delete(id);
     }
   }
 
-  // ------------------------------------------
-  // CHAT
-  // ------------------------------------------
+  /* -------------------- CHAT -------------------- */
 
   chat(
     message: string,
     sessionId?: string,
     options?: RequestOptions
-  ): Promise<APIResponse<ChatResponse>> {
-    return this.request('/chat', {
+  ) {
+    return this.request<ChatResponse>('/chat', {
       method: 'POST',
       body: JSON.stringify({
         message,
@@ -177,38 +157,36 @@ export class GatewayService {
 
   async streamChat(
     message: string,
-    options: StreamChatOptions = {}
+    opts: StreamChatOptions = {}
   ): Promise<void> {
     const controller = new AbortController();
-    const requestId = this.generateRequestId();
+    const id = this.generateId();
+    this.requests.set(id, controller);
 
-    if (options.signal) {
-      options.signal.addEventListener('abort', () => controller.abort(), {
+    if (opts.signal) {
+      opts.signal.addEventListener('abort', () => controller.abort(), {
         once: true,
       });
     }
 
-    this.requestMap.set(requestId, controller);
-
     try {
       const res = await fetch(`${this.baseURL}/chat/stream`, {
         method: 'POST',
-        headers: this.defaultHeaders,
+        headers: this.headers,
         body: JSON.stringify({
           message,
-          sessionId: options.sessionId,
+          sessionId: opts.sessionId,
           timestamp: new Date().toISOString(),
         }),
         signal: controller.signal,
       });
 
       if (!res.ok || !res.body) {
-        throw new Error('Streaming failed');
+        throw new Error('Stream failed');
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-
       let buffer = '';
 
       while (true) {
@@ -219,34 +197,27 @@ export class GatewayService {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          if (line.trim()) {
-            options.onChunk?.(line.trim());
-          }
-        }
+        lines.forEach(line => line.trim() && opts.onChunk?.(line.trim()));
       }
 
-      options.onComplete?.();
+      opts.onComplete?.();
     } catch (err: any) {
       if (err?.name !== 'AbortError') {
-        options.onError?.(err);
-        throw err;
+        opts.onError?.(err);
       }
     } finally {
-      this.requestMap.delete(requestId);
+      this.requests.delete(id);
     }
   }
 
-  // ------------------------------------------
-  // SESSIONS
-  // ------------------------------------------
+  /* -------------------- SESSIONS -------------------- */
 
   getSessions(options?: RequestOptions) {
     return this.request<ChatSession[]>('/sessions', options);
   }
 
-  getSession(sessionId: string, options?: RequestOptions) {
-    return this.request<ChatSession>(`/sessions/${sessionId}`, options);
+  getSession(id: string, options?: RequestOptions) {
+    return this.request<ChatSession>(`/sessions/${id}`, options);
   }
 
   createSession(title: string, options?: RequestOptions) {
@@ -257,43 +228,37 @@ export class GatewayService {
     });
   }
 
-  deleteSession(sessionId: string, options?: RequestOptions) {
-    return this.request<void>(`/sessions/${sessionId}`, {
+  deleteSession(id: string, options?: RequestOptions) {
+    return this.request<void>(`/sessions/${id}`, {
       method: 'DELETE',
       ...options,
     });
   }
 
-  // ------------------------------------------
-  // REQUEST CONTROL
-  // ------------------------------------------
+  /* -------------------- CONTROL -------------------- */
 
-  abortAllRequests(): void {
-    this.requestMap.forEach(c => c.abort());
-    this.requestMap.clear();
+  abortAll(): void {
+    this.requests.forEach(c => c.abort());
+    this.requests.clear();
   }
 
-  getActiveRequestCount(): number {
-    return this.requestMap.size;
+  activeRequests(): number {
+    return this.requests.size;
   }
 
-  setBaseURL(url: string): void {
-    this.baseURL = url.replace(/\/$/, '');
+  setHeader(key: string, value: string) {
+    this.headers = { ...this.headers, [key]: value };
   }
 
-  setHeader(key: string, value: string): void {
-    this.defaultHeaders = { ...this.defaultHeaders, [key]: value };
-  }
-
-  removeHeader(key: string): void {
-    const { [key]: _, ...rest } = this.defaultHeaders;
-    this.defaultHeaders = rest;
+  removeHeader(key: string) {
+    const { [key]: _, ...rest } = this.headers;
+    this.headers = rest;
   }
 }
 
-// ============================================
-// EXPORTS
-// ============================================
+/* ======================================================
+   EXPORTS
+====================================================== */
 
 export const createGatewayService = (baseURL: string) =>
   GatewayService.getInstance(baseURL);
