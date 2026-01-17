@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Transaction } from '@/types'; // ✅ FIXED
+import { Transaction } from '@/app/types'; // ✅ CORRECT
 import {
   ExternalLink,
   CheckCircle,
@@ -9,7 +9,7 @@ import {
   XCircle,
   TrendingUp,
 } from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils'; // ✅ FIXED
+import { cn, formatCurrency } from '@/app/lib/utils'; // ✅ CORRECT
 
 interface TransactionCardProps {
   transaction: Transaction;
