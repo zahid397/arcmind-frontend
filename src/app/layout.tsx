@@ -4,19 +4,23 @@ import { Toaster } from 'react-hot-toast';
 import './globals.css';
 import dynamic from 'next/dynamic';
 
-const Header = dynamic(() => import('./components/layout/Header'), {
-  ssr: false, // ✅ MUST
-});
-
-const Sidebar = dynamic(() => import('./components/layout/Sidebar'), {
-  ssr: false, // ✅ MUST
-});
+export const dynamic = 'force-dynamic'; // 🔥 VERY IMPORTANT
 
 const inter = Inter({ subsets: ['latin'] });
 
+// ✅ Client components MUST be dynamic
+const Header = dynamic(() => import('./components/layout/Header'), {
+  ssr: false,
+});
+
+const Sidebar = dynamic(() => import('./components/layout/Sidebar'), {
+  ssr: false,
+});
+
 export const metadata: Metadata = {
   title: 'ArcMind - Advanced AI Assistant',
-  description: 'Production-grade AI assistant with blockchain integration',
+  description:
+    'Production-grade AI assistant with blockchain integration and advanced features',
 };
 
 export default function RootLayout({
@@ -25,13 +29,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.className} bg-background text-foreground antialiased`}
+      >
         <div className="flex min-h-screen">
           <Sidebar />
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-1 flex-col">
             <Header />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 overflow-hidden">{children}</main>
           </div>
         </div>
 
