@@ -2,21 +2,17 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
-import dynamicImport from 'next/dynamic';
-
-const Header = dynamicImport(() => import('./components/layout/Header'), {
-  ssr: false,
-});
-
-const Sidebar = dynamicImport(() => import('./components/layout/Sidebar'), {
-  ssr: false,
-});
+import dynamic from 'next/dynamic';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// ✅ dynamic import (NO name conflict)
+const Header = dynamic(() => import('@/components/layout/Header'), { ssr: false });
+const Sidebar = dynamic(() => import('@/components/layout/Sidebar'), { ssr: false });
+
 export const metadata: Metadata = {
   title: 'ArcMind',
-  description: 'AI Assistant',
+  description: 'Advanced AI Assistant',
 };
 
 export default function RootLayout({
@@ -34,6 +30,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
           </div>
         </div>
+
         <Toaster position="top-right" />
       </body>
     </html>
