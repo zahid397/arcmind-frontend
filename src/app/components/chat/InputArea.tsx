@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send,
   Smile,
-  Image as ImageIcon,
   Zap,
   Paperclip,
   Mic,
@@ -13,7 +12,10 @@ import {
   Brain,
   X,
 } from 'lucide-react';
-import { cn, debounce } from '@/lib/utils'; // ✅ FIXED PATH
+
+// ✅ CORRECT PATH (MOST IMPORTANT FIX)
+import { cn, debounce } from '@/app/lib/utils';
+
 import { toast } from 'react-hot-toast';
 
 interface InputAreaProps {
@@ -37,10 +39,11 @@ export default function InputArea({
   const [isRecording, setIsRecording] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-resize textarea
+  // Auto resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -50,11 +53,11 @@ export default function InputArea({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isLoading) {
-      onSendMessage(input);
-      setInput('');
-      setAttachments([]);
-    }
+    if (!input.trim() || isLoading) return;
+
+    onSendMessage(input);
+    setInput('');
+    setAttachments([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -65,13 +68,8 @@ export default function InputArea({
   };
 
   const handleRecording = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      toast.success('Recording started');
-    } else {
-      setIsRecording(false);
-      toast.success('Recording stopped');
-    }
+    setIsRecording((prev) => !prev);
+    toast.success(isRecording ? 'Recording stopped' : 'Recording started');
   };
 
   const handleFileUpload = () => {
@@ -80,11 +78,11 @@ export default function InputArea({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setAttachments((prev) => [...prev, ...files]);
-      toast.success(`${files.length} file(s) attached`);
-      onAttachment?.(files[0]);
-    }
+    if (!files.length) return;
+
+    setAttachments((prev) => [...prev, ...files]);
+    onAttachment?.(files[0]);
+    toast.success(`${files.length} file(s) attached`);
   };
 
   const removeAttachment = (index: number) => {
@@ -97,15 +95,11 @@ export default function InputArea({
     textareaRef.current?.focus();
   };
 
-  // Debounced input handler
-  const debouncedInputChange = debounce((value: string) => {
-    // future autosave / hints
-  }, 1000);
+  const debouncedInputChange = debounce(() => {}, 1000);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setInput(value);
-    debouncedInputChange(value);
+    setInput(e.target.value);
+    debouncedInputChange();
   };
 
   return (
@@ -124,26 +118,22 @@ export default function InputArea({
                 <p className="text-sm font-medium">Quick Actions</p>
                 <button
                   onClick={() => setShowQuickActions(false)}
-                  className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                  className="p-1 rounded-lg hover:bg-secondary"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
+
               <div className="grid grid-cols-3 gap-2">
-                {QUICK_ACTIONS.map((action, index) => (
-                  <motion.button
+                {QUICK_ACTIONS.map((action) => (
+                  <button
                     key={action.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleQuickAction(action.prompt)}
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-secondary/50 hover:bg-secondary"
                   >
                     <action.icon className="w-4 h-4" />
                     <span className="text-xs">{action.label}</span>
-                  </motion.button>
+                  </button>
                 ))}
               </div>
             </div>
@@ -151,144 +141,75 @@ export default function InputArea({
         )}
       </AnimatePresence>
 
-      {/* Attachments Preview */}
-      <AnimatePresence>
-        {attachments.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="flex gap-2 mb-2 overflow-x-auto pb-2"
-          >
-            {attachments.map((file, index) => (
-              <motion.div
-                key={`${file.name}-${index}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 border border-border"
+      {/* Attachments */}
+      {attachments.length > 0 && (
+        <div className="flex gap-2 mb-2 overflow-x-auto">
+          {attachments.map((file, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 border"
+            >
+              <Paperclip className="w-4 h-4" />
+              <span className="text-sm truncate max-w-[100px]">{file.name}</span>
+              <button
+                onClick={() => removeAttachment(index)}
+                className="text-destructive"
               >
-                <Paperclip className="w-4 h-4" />
-                <span className="text-sm truncate max-w-[100px]">{file.name}</span>
-                <button
-                  onClick={() => removeAttachment(index)}
-                  className="p-0.5 rounded hover:bg-destructive/10 text-destructive"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Main Input Area */}
-      <form onSubmit={handleSubmit} className="relative">
+      {/* Input */}
+      <form onSubmit={handleSubmit}>
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl" />
-
           <textarea
             ref={textareaRef}
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask ArcMind anything..."
-            className="relative w-full p-4 pl-14 pr-36 bg-background/80 backdrop-blur-lg
-              border-2 border-border rounded-2xl focus:outline-none
-              focus:border-primary/50 focus:ring-2 focus:ring-primary/20
-              resize-none min-h-[60px] max-h-48 text-sm leading-relaxed
-              placeholder:text-muted-foreground/50"
-            rows={1}
             disabled={isLoading}
+            className="w-full p-4 pl-14 pr-36 rounded-2xl bg-background/80 border resize-none"
           />
 
-          {/* Left Icons */}
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <motion.button
+          {/* Left */}
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex gap-2">
+            <button
               type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               onClick={() => setShowQuickActions(!showQuickActions)}
               className={cn(
-                'p-2 rounded-full transition-colors',
-                showQuickActions ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
+                'p-2 rounded-full',
+                showQuickActions ? 'bg-primary text-white' : 'hover:bg-secondary'
               )}
             >
               <Zap className="w-4 h-4" />
-            </motion.button>
+            </button>
 
-            <motion.button
+            <button
               type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               onClick={handleFileUpload}
-              className="p-2 rounded-full hover:bg-secondary transition-colors"
+              className="p-2 rounded-full hover:bg-secondary"
             >
               <Paperclip className="w-4 h-4" />
-            </motion.button>
+            </button>
           </div>
 
-          {/* Right Icons */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 rounded-full hover:bg-secondary transition-colors"
-            >
-              <Smile className="w-4 h-4" />
-            </motion.button>
+          {/* Right */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+            <button type="button" onClick={handleRecording} className="p-2 rounded-full">
+              {isRecording ? <StopCircle /> : <Mic />}
+            </button>
 
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleRecording}
-              className={cn(
-                'p-2 rounded-full transition-colors',
-                isRecording
-                  ? 'bg-destructive text-destructive-foreground animate-pulse'
-                  : 'hover:bg-secondary'
-              )}
-            >
-              {isRecording ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </motion.button>
-
-            <motion.button
+            <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={cn(
-                'p-2.5 rounded-xl transition-all duration-300',
-                input.trim() && !isLoading
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-secondary text-muted-foreground cursor-not-allowed'
-              )}
+              className="p-2.5 rounded-xl bg-primary text-white"
             >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </motion.button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mt-2 px-2">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <button type="button" className="hover:text-foreground" onClick={() => setInput((p) => p + '```code```')}>
-              Code block
+              {isLoading ? '...' : <Send className="w-4 h-4" />}
             </button>
-            <button type="button" className="hover:text-foreground" onClick={() => setInput((p) => p + '**bold**')}>
-              Markdown
-            </button>
-            <span className={cn(input.length > 4000 ? 'text-destructive' : '')}>
-              {input.length}/4000
-            </span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Press Enter to send • Shift+Enter for new line
           </div>
         </div>
       </form>
@@ -299,7 +220,6 @@ export default function InputArea({
         multiple
         className="hidden"
         onChange={handleFileChange}
-        accept="image/*,.pdf,.doc,.docx,.txt"
       />
     </div>
   );
