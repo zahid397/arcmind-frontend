@@ -2,12 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  eslint: {
-    ignoreDuringBuilds: true, // 🔥 THIS FIX
-  },
+  // 🔥 THIS FIXES VERCEL BUILD STUCK
+  output: 'standalone',
 
-  typescript: {
-    ignoreBuildErrors: true, // 🔥 optional but helpful
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
 };
 
