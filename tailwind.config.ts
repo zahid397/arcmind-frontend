@@ -2,13 +2,9 @@ import type { Config } from 'tailwindcss'
 
 const config: Config = {
   darkMode: ['class'],
-
   content: [
-    './src/app/**/*.{ts,tsx}',
-    './src/app/components/**/*.{ts,tsx}',
-    './src/components/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}', // ✅ FIXED: safest glob for App Router
   ],
-
   theme: {
     container: {
       center: true,
@@ -17,7 +13,6 @@ const config: Config = {
         '2xl': '1400px',
       },
     },
-
     extend: {
       colors: {
         /* ===== CSS VAR COLORS ===== */
@@ -52,22 +47,27 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
 
-        /* ===== CUSTOM UI COLORS ===== */
-        neon: {
-          cyan: '#00ffff',
-          green: '#00ff00',
-          blue: '#0066ff',
-          pink: '#ff00ff',
-          yellow: '#ffff00',
-        },
+        /* ===== NEON COLORS ===== */
+        'neon-cyan': '#00f3ff',
+        'neon-green': '#00ff88',
+        'neon-blue': '#0088ff',
+        'neon-purple': '#aa00ff',
+        'neon-pink': '#ff00ff',
+        'neon-yellow': '#ffff00',
 
+        /* ===== COMPOST ===== */
         compost: {
-          500: '#b8843d',
-          600: '#8f642e',
-          700: '#795927',
-          800: '#5c441c',
-          900: '#3a2b12',
-          950: '#1f1609',
+          50: '#f8f6f4',
+          100: '#e8e4dd',
+          200: '#d1c9bc',
+          300: '#b5a896',
+          400: '#9f8d78',
+          500: '#8d7c68',
+          600: '#7a6754',
+          700: '#655344',
+          800: '#554639',
+          900: '#483c32',
+          950: '#271f1a',
         },
       },
 
@@ -78,42 +78,86 @@ const config: Config = {
       },
 
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        float: 'float 3s ease-in-out infinite',
-        gradient: 'gradient 6s linear infinite',
-        shimmer: 'shimmer 2s linear infinite',
+        /* Skeleton */
+        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4,0,0.6,1) infinite',
+        'pulse-fast': 'pulse-fast 1s cubic-bezier(0.4,0,0.6,1) infinite',
+
+        /* Text shimmer */
+        'text-shimmer': 'text-shimmer 3s ease-in-out infinite',
+        'text-shimmer-slow': 'text-shimmer 5s ease-in-out infinite',
+        'text-shimmer-fast': 'text-shimmer 1.5s linear infinite',
+
+        /* Gradient mesh */
+        'gradient-mesh': 'gradient-mesh 30s ease-in-out infinite',
+        'gradient-mesh-slow': 'gradient-mesh 60s ease-in-out infinite',
+        'gradient-mesh-fast': 'gradient-mesh 15s ease-in-out infinite',
+
+        /* Neon grid */
+        'neon-grid': 'neon-grid-shift 20s linear infinite',
+        'neon-grid-slow': 'neon-grid-shift 40s linear infinite',
+        'neon-grid-fast': 'neon-grid-shift 10s linear infinite',
+
+        /* Scanlines */
+        'scanlines': 'scanlines-scroll 1s linear infinite',
+        'scanlines-slow': 'scanlines-scroll-slow 2s linear infinite',
+        'scanlines-fast': 'scanlines-scroll-fast 0.5s linear infinite',
       },
 
       keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
+        'pulse-slow': {
+          '0%,100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
         },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
+        'pulse-fast': {
+          '0%,100%': { opacity: '1' },
+          '50%': { opacity: '0.3' },
         },
-        float: {
-          '0%,100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+
+        'text-shimmer': {
+          '0%,100%': { backgroundPosition: '-200% center' },
+          '50%': { backgroundPosition: '200% center' },
         },
-        gradient: {
-          '0%,100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
+
+        'gradient-mesh': {
+          '0%': { backgroundPosition: '0% 0%' },
+          '25%': { backgroundPosition: '100% 0%' },
+          '50%': { backgroundPosition: '100% 100%' },
+          '75%': { backgroundPosition: '0% 100%' },
+          '100%': { backgroundPosition: '0% 0%' },
         },
-        shimmer: {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
+
+        'neon-grid-shift': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': {
+            backgroundPosition:
+              'var(--neon-grid-size,48px) var(--neon-grid-size,48px)',
+          },
+        },
+
+        'scanlines-scroll': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '0 20px' },
+        },
+        'scanlines-scroll-slow': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '0 10px' },
+        },
+        'scanlines-scroll-fast': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '0 40px' },
         },
       },
     },
   },
-
   plugins: [
     require('tailwindcss-animate'),
-    require('@tailwindcss/typography'),
-    // ❌ scrollbar plugin REMOVED (Vercel freeze cause)
+    function ({ addUtilities, theme }) {
+      addUtilities({
+        '.text-shadow-neon': {
+          textShadow: theme('textShadow.neon'),
+        },
+      })
+    },
   ],
 }
 
