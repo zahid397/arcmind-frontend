@@ -1,9 +1,9 @@
-export type MessageStatus = 'sending' | 'sent' | 'error'
+// src/app/types.ts
 
 export interface Message {
   id: string
   content: string
   role: 'user' | 'assistant'
-  timestamp: Date
-  status?: MessageStatus
+  timestamp: string // ✅ MUST be string for Next.js build
+  status?: 'sending' | 'sent' | 'error'
 }
