@@ -37,6 +37,22 @@
     --ring: 142 70% 45%;
 
     --radius: 0.75rem;
+
+    /* ✅ HEX Colors for convenience */
+    --neon-cyan: #00f3ff;
+    --neon-green: #00ff88;
+    --neon-blue: #0088ff;
+    --neon-purple: #aa00ff;
+    --neon-pink: #ff00ff;
+    --neon-yellow: #ffff00;
+
+    /* ✅ CRITICAL FIX: RGB variables for rgb() usage */
+    --neon-cyan-rgb: 0 243 255;
+    --neon-green-rgb: 0 255 136;
+    --neon-blue-rgb: 0 136 255;
+    --neon-purple-rgb: 170 0 255;
+    --neon-pink-rgb: 255 0 255;
+    --neon-yellow-rgb: 255 255 0;
   }
 
   * {
@@ -48,36 +64,195 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Scrollbar */
+  /* ✅ Modern Scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #14110b;
+    background: hsl(var(--background));
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 0, 0.3);
+    background: rgba(0, 255, 136, 0.3);
     border-radius: 999px;
+    border: 2px solid hsl(var(--background));
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 255, 0, 0.5);
+    background: rgba(0, 255, 136, 0.5);
+  }
+
+  /* ✅ FIX 2: Changed from * to html for Firefox scrollbar */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 255, 136, 0.3) hsl(var(--background));
+  }
+
+  /* ✅ Selection color */
+  ::selection {
+    background-color: rgb(var(--neon-green-rgb) / 0.3);
+    color: hsl(var(--foreground));
+  }
+
+  /* ✅ Focus outline */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }
 
 /* =========================
-   KEYFRAMES (CRITICAL FIX)
+   KEYFRAMES (ALL COMPONENTS)
 ========================= */
-@keyframes chat-bubble {
-  0% {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
+@layer base {
+  /* Chat bubble animations */
+  @keyframes chat-bubble {
+    0% {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
   }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+
+  /* Gradient mesh animation */
+  @keyframes gradient-mesh {
+    0% {
+      background-position: 0% 0%;
+    }
+    25% {
+      background-position: 100% 0%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    75% {
+      background-position: 0% 100%;
+    }
+    100% {
+      background-position: 0% 0%;
+    }
+  }
+
+  /* Neon grid shift animation */
+  @keyframes neon-grid-shift {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: var(--neon-grid-size, 48px) var(--neon-grid-size, 48px);
+    }
+  }
+
+  /* Text shimmer animation */
+  @keyframes text-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  /* Scan lines animation */
+  @keyframes scanlines-scroll {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 0 20px;
+    }
+  }
+
+  /* Pulse animations for skeleton */
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes pulse-fast {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  /* Glitch text animations */
+  @keyframes glitch-anim {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+
+  @keyframes glitch-anim-2 {
+    0% { clip: rect(31px, 9999px, 11px, 0); }
+    5% { clip: rect(82px, 9999px, 79px, 0); }
+    10% { clip: rect(46px, 9999px, 64px, 0); }
+    15% { clip: rect(11px, 9999px, 68px, 0); }
+    20% { clip: rect(75px, 9999px, 7px, 0); }
+    25% { clip: rect(71px, 9999px, 31px, 0); }
+    30% { clip: rect(89px, 9999px, 59px, 0); }
+    35% { clip: rect(16px, 9999px, 78px, 0); }
+    40% { clip: rect(44px, 9999px, 21px, 0); }
+    45% { clip: rect(69px, 9999px, 68px, 0); }
+    50% { clip: rect(2px, 9999px, 32px, 0); }
+    55% { clip: rect(38px, 9999px, 75px, 0); }
+    60% { clip: rect(93px, 9999px, 83px, 0); }
+    65% { clip: rect(58px, 9999px, 46px, 0); }
+    70% { clip: rect(32px, 9999px, 51px, 0); }
+    75% { clip: rect(13px, 9999px, 78px, 0); }
+    80% { clip: rect(91px, 9999px, 88px, 0); }
+    85% { clip: rect(49px, 9999px, 94px, 0); }
+    90% { clip: rect(59px, 9999px, 82px, 0); }
+    95% { clip: rect(45px, 9999px, 75px, 0); }
+    100% { clip: rect(84px, 9999px, 15px, 0); }
+  }
+
+  @keyframes glitch-anim-3 {
+    0% { clip: rect(17px, 9999px, 45px, 0); }
+    5% { clip: rect(63px, 9999px, 4px, 0); }
+    10% { clip: rect(59px, 9999px, 11px, 0); }
+    15% { clip: rect(92px, 9999px, 99px, 0); }
+    20% { clip: rect(87px, 9999px, 15px, 0); }
+    25% { clip: rect(41px, 9999px, 48px, 0); }
+    30% { clip: rect(58px, 9999px, 71px, 0); }
+    35% { clip: rect(28px, 9999px, 32px, 0); }
+    40% { clip: rect(87px, 9999px, 71px, 0); }
+    45% { clip: rect(72px, 9999px, 24px, 0); }
+    50% { clip: rect(49px, 9999px, 7px, 0); }
+    55% { clip: rect(66px, 9999px, 84px, 0); }
+    60% { clip: rect(6px, 9999px, 63px, 0); }
+    65% { clip: rect(86px, 9999px, 52px, 0); }
+    70% { clip: rect(42px, 9999px, 60px, 0); }
+    75% { clip: rect(17px, 9999px, 14px, 0); }
+    80% { clip: rect(64px, 9999px, 53px, 0); }
+    85% { clip: rect(63px, 9999px, 13px, 0); }
+    90% { clip: rect(8px, 9999px, 52px, 0); }
+    95% { clip: rect(93px, 9999px, 21px, 0); }
+    100% { clip: rect(34px, 9999px, 17px, 0); }
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
 }
 
@@ -85,41 +260,65 @@
    UTILITIES
 ========================= */
 @layer utilities {
-  /* Gradient Text */
+  /* ✅ Gradient Text */
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(
       to right,
-      #00ffff,
-      #00ff00,
-      #0088ff
+      var(--neon-cyan),
+      var(--neon-green),
+      var(--neon-blue)
     );
+    background-size: 200% auto;
   }
 
-  /* Glass */
+  /* ✅ Glass Effects */
   .glass-effect {
     backdrop-filter: blur(12px);
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* Neon Shadows (SAFE – no theme()) */
+  .glass-effect-dark {
+    backdrop-filter: blur(16px);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* ✅ FIX 1: Modern rgb() with slash alpha syntax */
   .neon-shadow {
     box-shadow:
-      0 0 10px rgba(0, 255, 0, 0.6),
-      0 0 20px rgba(0, 255, 0, 0.4),
-      0 0 30px rgba(0, 255, 0, 0.3),
-      inset 0 0 20px rgba(0, 255, 0, 0.2);
+      0 0 10px rgb(var(--neon-green-rgb) / 0.6),
+      0 0 20px rgb(var(--neon-green-rgb) / 0.4),
+      0 0 30px rgb(var(--neon-green-rgb) / 0.3),
+      inset 0 0 20px rgb(var(--neon-green-rgb) / 0.2);
+  }
+
+  .neon-shadow-cyan {
+    box-shadow:
+      0 0 10px rgb(var(--neon-cyan-rgb) / 0.6),
+      0 0 20px rgb(var(--neon-cyan-rgb) / 0.4),
+      0 0 30px rgb(var(--neon-cyan-rgb) / 0.3),
+      inset 0 0 20px rgb(var(--neon-cyan-rgb) / 0.2);
   }
 
   .neon-shadow-blue {
     box-shadow:
-      0 0 10px rgba(0, 200, 255, 0.6),
-      0 0 20px rgba(0, 200, 255, 0.4),
-      0 0 30px rgba(0, 200, 255, 0.3),
-      inset 0 0 20px rgba(0, 200, 255, 0.2);
+      0 0 10px rgb(var(--neon-blue-rgb) / 0.6),
+      0 0 20px rgb(var(--neon-blue-rgb) / 0.4),
+      0 0 30px rgb(var(--neon-blue-rgb) / 0.3),
+      inset 0 0 20px rgb(var(--neon-blue-rgb) / 0.2);
   }
 
+  .neon-shadow-purple {
+    box-shadow:
+      0 0 10px rgb(var(--neon-purple-rgb) / 0.6),
+      0 0 20px rgb(var(--neon-purple-rgb) / 0.4),
+      0 0 30px rgb(var(--neon-purple-rgb) / 0.3),
+      inset 0 0 20px rgb(var(--neon-purple-rgb) / 0.2);
+  }
+
+  /* ✅ Neon Text */
   .neon-text {
     text-shadow:
       0 0 5px currentColor,
@@ -128,7 +327,54 @@
       0 0 20px currentColor;
   }
 
-  /* Chat Animations */
+  .neon-text-sm {
+    text-shadow:
+      0 0 2px currentColor,
+      0 0 4px currentColor;
+  }
+
+  .neon-text-lg {
+    text-shadow:
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor,
+      0 0 40px currentColor;
+  }
+
+  /* ✅ FIX 3: GlitchText support */
+  .glitch-effect {
+    position: relative;
+    display: inline-block;
+    animation: glitch-anim 5s infinite;
+  }
+
+  .glitch-effect::before,
+  .glitch-effect::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .glitch-effect::before {
+    left: 2px;
+    text-shadow: -1px 0 rgb(var(--neon-cyan-rgb) / 0.8);
+    animation: glitch-anim-2 3s infinite;
+    clip: rect(44px, 450px, 56px, 0);
+  }
+
+  .glitch-effect::after {
+    left: -2px;
+    text-shadow: 1px 0 rgb(var(--neon-purple-rgb) / 0.8);
+    animation: glitch-anim-3 2s infinite;
+    clip: rect(44px, 450px, 56px, 0);
+  }
+
+  /* ✅ Chat Animations */
   .chat-bubble-user {
     animation: chat-bubble 0.3s ease-out;
   }
@@ -136,4 +382,152 @@
   .chat-bubble-ai {
     animation: chat-bubble 0.5s ease-out;
   }
+
+  /* ✅ Component Animation Classes */
+  .animate-gradient-mesh {
+    animation: gradient-mesh 30s ease-in-out infinite;
+  }
+
+  .animate-gradient-mesh-slow {
+    animation: gradient-mesh 60s ease-in-out infinite;
+  }
+
+  .animate-gradient-mesh-fast {
+    animation: gradient-mesh 15s ease-in-out infinite;
+  }
+
+  .animate-neon-grid {
+    animation: neon-grid-shift 20s linear infinite;
+  }
+
+  .animate-neon-grid-slow {
+    animation: neon-grid-shift 40s linear infinite;
+  }
+
+  .animate-neon-grid-fast {
+    animation: neon-grid-shift 10s linear infinite;
+  }
+
+  .animate-text-shimmer {
+    animation: text-shimmer 3s ease-in-out infinite;
+  }
+
+  .animate-text-shimmer-slow {
+    animation: text-shimmer 5s ease-in-out infinite;
+  }
+
+  .animate-text-shimmer-fast {
+    animation: text-shimmer 1.5s linear infinite;
+  }
+
+  .animate-scanlines {
+    animation: scanlines-scroll 1s linear infinite;
+  }
+
+  .animate-scanlines-slow {
+    animation: scanlines-scroll 2s linear infinite;
+  }
+
+  .animate-scanlines-fast {
+    animation: scanlines-scroll 0.5s linear infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-pulse-fast {
+    animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-glitch {
+    animation: glitch-anim 5s infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* ✅ Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-gradient-mesh,
+    .animate-neon-grid,
+    .animate-text-shimmer,
+    .animate-scanlines,
+    .animate-pulse-slow,
+    .animate-pulse-fast,
+    .animate-glitch,
+    .animate-float,
+    .chat-bubble-user,
+    .chat-bubble-ai,
+    .glitch-effect,
+    .glitch-effect::before,
+    .glitch-effect::after {
+      animation: none !important;
+    }
+    
+    .glitch-effect::before,
+    .glitch-effect::after {
+      display: none;
+    }
+  }
+
+  /* ✅ Backdrop Blur Support */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(8px);
+  }
+
+  .backdrop-blur-lg {
+    backdrop-filter: blur(12px);
+  }
+
+  /* ✅ Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ✅ Text balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ✅ Safe area insets for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
 }
+
+/* =========================
+   PRINT STYLES
+========================= */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+   }
