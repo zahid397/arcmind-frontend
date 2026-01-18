@@ -1,5 +1,4 @@
 'use client'
-
 import { motion } from 'framer-motion'
 import { Brain, Sparkles, Zap, ArrowRight } from 'lucide-react'
 import { Button } from '@/app/components/ui/button' // ✅ ABSOLUTE + lowercase
