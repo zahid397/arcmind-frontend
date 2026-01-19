@@ -4,18 +4,22 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       animation: {
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
-        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         'shimmer': 'shimmer 2s linear infinite',
         'gradient': 'gradient 8s linear infinite',
+        'pulse-slow': 'pulse 3s ease-in-out infinite',
         'bounce-slow': 'bounce 2s infinite',
-        'spin-slow': 'spin 3s linear infinite',
+        'spin-slow': 'spin 8s linear infinite',
         'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'slide-in': 'slideIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.5s ease-out',
+        'fade-in': 'fadeIn 0.5s ease-out',
+        'scale-in': 'scaleIn 0.3s ease-out',
+        'wave': 'wave 2s linear infinite',
       },
       keyframes: {
         float: {
@@ -34,16 +38,32 @@ export default {
           '0%, 100%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
         },
-      },
-      colors: {
-        'arcmind-blue': '#3b82f6',
-        'arcmind-purple': '#8b5cf6',
-        'arcmind-cyan': '#06b6d4',
-        'arcmind-pink': '#ec4899',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        slideIn: {
+          '0%': { transform: 'translateX(-20px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        wave: {
+          '0%': { transform: 'rotate(0deg)' },
+          '10%': { transform: 'rotate(14deg)' },
+          '20%': { transform: 'rotate(-8deg)' },
+          '30%': { transform: 'rotate(14deg)' },
+          '40%': { transform: 'rotate(-4deg)' },
+          '50%': { transform: 'rotate(10deg)' },
+          '60%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(0deg)' },
+        },
       },
     },
   },
