@@ -13,27 +13,20 @@ export default function Home() {
     <main className="relative h-screen w-full overflow-hidden">
       <EffectsClient />
 
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-black to-purple-950/20" />
 
       <div className="relative z-10 h-full flex flex-col">
-        {/* Header */}
         <header className="p-6 border-b border-white/10 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-pulse" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <MessageCircle className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text">
                   Arcmind
                 </h1>
-                <p className="text-sm text-gray-400">
-                  AI-Powered Conversations
-                </p>
+                <p className="text-sm text-gray-400">AI-Powered Conversations</p>
               </div>
             </div>
 
@@ -44,10 +37,9 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Body */}
         <div className="flex-1 overflow-hidden">
           {!welcomeComplete ? (
-            <WelcomeScreen onStartChat={() => setWelcomeComplete(true)} />
+            <WelcomeScreen onComplete={() => setWelcomeComplete(true)} />
           ) : (
             <ChatContainer />
           )}
