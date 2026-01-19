@@ -1,83 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ArcMind AI</title>
-
-  <!-- Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Favicon (optional) -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      background: radial-gradient(circle at top, #0f172a, #000);
-      height: 100vh;
-      overflow: hidden;
-      color: white;
-    }
-
-    /* Background orbs */
-    .orb {
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      filter: blur(120px);
-      opacity: 0.4;
-      animation: float 10s infinite alternate ease-in-out;
-    }
-
-    .orb.blue {
-      background: #3b82f6;
-      top: 10%;
-      left: 10%;
-    }
-
-    .orb.purple {
-      background: #8b5cf6;
-      bottom: 10%;
-      right: 10%;
-      animation-delay: 3s;
-    }
-
-    @keyframes float {
-      from { transform: translate(0, 0); }
-      to { transform: translate(60px, -80px); }
-    }
-
-    .grid {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 60px 60px;
-      mask-image: radial-gradient(circle at center, black 40%, transparent 75%);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArcMind AI | Hackathon Demo</title>
+    
+    <!-- SEO & Meta -->
+    <meta name="description" content="ArcMind AI - Hackathon project with Render backend sleep handling">
+    <meta name="keywords" content="AI, chatbot, hackathon, Render, Cloudflare, demo">
+    <meta name="author" content="ArcMind Team">
+    
+    <!-- PWA (Fixed Path) -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Quick loading animation */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        
+        .loader-content {
+            text-align: center;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div style="color: #cbd5e1; margin-top: 15px;">Loading ArcMind AI...</div>
+        </div>
+    </div>
 
-  <!-- Background -->
-  <div class="orb blue"></div>
-  <div class="orb purple"></div>
-  <div class="grid"></div>
+    <!-- Main App -->
+    <div class="app-container">
+        <!-- Status Banner -->
+        <div class="status-banner demo" id="statusBanner">
+            <div class="status-content">
+                <div class="status-left">
+                    <span class="status-icon">🔋</span>
+                    <span class="status-text" id="statusText">Backend sleeping (demo mode)</span>
+                    <span class="status-time" id="statusTime">Just now</span>
+                </div>
+                <button class="wake-btn" id="wakeBtn" aria-label="Wake backend">
+                    <span class="btn-spinner"></span>
+                    🚀 Wake Backend
+                </button>
+            </div>
+        </div>
 
-  <!-- ✅ React mounts here -->
-  <div id="root"></div>
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <span>ArcMind AI</span>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span id="liveStatus">Demo Mode</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" id="clearBtn" aria-label="Clear chat">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="header-btn" id="themeBtn" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="header-btn" id="infoBtn" aria-label="Show info">
+                    <i class="fas fa-info"></i>
+                </button>
+            </div>
+        </header>
 
-  <!-- ✅ Vite entry -->
-  <script type="module" src="/src/main.jsx"></script>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Welcome & Showcase Section -->
+            <section class="welcome-section active" id="welcomeSection">
+                <div class="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h1>ArcMind AI Assistant</h1>
+                    <p class="welcome-desc" id="welcomeDesc">
+                        Hackathon project with intelligent backend sleep handling
+                    </p>
+                    
+                    <!-- Tech Showcase Grid -->
+                    <div class="showcase-container">
+                        <h2 class="showcase-title">
+                            <i class="fas fa-code"></i> Built With
+                        </h2>
+                        <div class="showcase-grid">
+                            <!-- HTML5 Card -->
+                            <div class="tech-card" data-tech="html">
+                                <div class="tech-icon">
+                                    <i class="fab fa-html5"></i>
+                                </div>
+                                <h3>HTML5</h3>
+                                <p class="tech-desc">Semantic markup & accessibility</p>
+                                <div class="tech-features">
+                                    <span>Semantic Tags</span>
+                                    <span>ARIA Labels</span>
+                                    <span>PWA Ready</span>
+                                </div>
+                            </div>
+                            
+                            <!-- CSS3 Card -->
+                            <div class="tech-card" data-tech="css">
+                                <div class="tech-icon">
+                                    <i class="fab fa-css3-alt"></i>
+                                </div>
+                                <h3>CSS3</h3>
+                                <p class="tech-desc">Modern animations & gradients</p>
+                                <div class="tech-features">
+                                    <span>Flexbox/Grid</span>
+                                    <span>Animations</span>
+                                    <span>Responsive</span>
+                                </div>
+                            </div>
+                            
+                            <!-- JavaScript Card -->
+                            <div class="tech-card" data-tech="js">
+                                <div class="tech-icon">
+                                    <i class="fab fa-js-square"></i>
+                                </div>
+                                <h3>JavaScript</h3>
+                                <p class="tech-desc">Smart backend fallback logic</p>
+                                <div class="tech-features">
+                                    <span>Fetch API</span>
+                                    <span>Demo Fallback</span>
+                                    <span>Async/Await</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Prompts -->
+                    <div class="prompts-section">
+                        <h3><i class="fas fa-bolt"></i> Try asking:</h3>
+                        <div class="prompts-grid">
+                            <button class="prompt-btn" data-prompt="Explain quantum computing">
+                                <i class="fas fa-atom"></i> Explain quantum
+                            </button>
+                            <button class="prompt-btn" data-prompt="Write a Python function">
+                                <i class="fas fa-code"></i> Write Python code
+                            </button>
+                            <button class="prompt-btn" data-prompt="What is machine learning?">
+                                <i class="fas fa-brain"></i> Machine learning
+                            </button>
+                            <button class="prompt-btn" data-prompt="Help me plan a project">
+                                <i class="fas fa-tasks"></i> Project planning
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Wake Call-to-Action -->
+                    <div class="wake-cta">
+                        <button class="wake-big-btn" id="wakeBigBtn">
+                            <i class="fas fa-bolt"></i>
+                            <span>Click to Wake Backend for Live AI</span>
+                        </button>
+                        <p class="cta-note">
+                            <i class="fas fa-lightbulb"></i>
+                            Pro tip: Wake backend before demo for smooth experience
+                        </p>
+                    </div>
+                </div>
+            </section>
 
+            <!-- Chat Section -->
+            <section class="chat-section" id="chatSection">
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Messages will appear here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Input Section -->
+        <footer class="input-section">
+            <div class="input-wrapper">
+                <div class="input-box">
+                    <textarea 
+                        id="messageInput"
+                        placeholder="Type your message here..."
+                        rows="1"
+                        aria-label="Chat message input"
+                        autocomplete="off"></textarea>
+                    <div class="input-actions">
+                        <button class="input-action-btn" id="attachBtn" aria-label="Attach file">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="input-action-btn" id="voiceBtn" aria-label="Voice input" style="display: none;">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="send-btn" id="sendBtn" aria-label="Send message">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <div class="model-info">
+                        <span class="model-tag">DeepSeek</span>
+                        <span class="model-ver">v2.0</span>
+                    </div>
+                    <div class="disclaimer">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>AI can make mistakes. Verify important information.</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> About ArcMind AI</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h4><i class="fas fa-bolt"></i> Hackathon Features</h4>
+                    <ul>
+                        <li>✅ Backend sleep detection & handling</li>
+                        <li>✅ Smart demo fallback mode</li>
+                        <li>✅ One-click backend wake-up</li>
+                        <li>✅ Render + Cloudflare integration</li>
+                        <li>✅ Pure HTML/CSS/JS - No frameworks</li>
+                    </ul>
+                </div>
+                <div class="modal-section">
+                    <h4><i class="fas fa-cogs"></i> Tech Stack</h4>
+                    <div class="tech-stack">
+                        <span class="tech-badge html">HTML5</span>
+                        <span class="tech-badge css">CSS3</span>
+                        <span class="tech-badge js">JavaScript</span>
+                        <span class="tech-badge api">Fetch API</span>
+                        <span class="tech-badge pwa">PWA</span>
+                    </div>
+                </div>
+                <div class="modal-section">
+                    <h4><i class="fas fa-cloud"></i> Deployment</h4>
+                    <p>Frontend: Cloudflare Pages (Static)</p>
+                    <p>Backend: Render (Free tier with sleep)</p>
+                    <p>Demo URL: <code>https://arcmind-demo.pages.dev</code></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="viewSource">
+                    <i class="fab fa-github"></i> View Source Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+    
+    <!-- Initialize -->
+    <script>
+        // Hide loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }, 800);
+        });
+        
+        // Hide voice button if not supported
+        window.addEventListener('load', () => {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                voiceBtn.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
