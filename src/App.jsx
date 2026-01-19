@@ -1,236 +1,275 @@
-import { useState, useEffect, Suspense, lazy } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Header from './components/Header'
+import { Brain, Zap, Loader2, X, Sparkles } from 'lucide-react'
 import WelcomeScreen from './components/WelcomeScreen'
 import ChatContainer from './components/ChatContainer'
-import { Brain, Sparkles } from 'lucide-react'
-
-// Lazy load heavy components
-const BackgroundOrbs = lazy(() => import('./effects/BackgroundOrbs'))
-const GradientMesh = lazy(() => import('./effects/GradientMesh'))
-
-// Local AI responses
-const AI_RESPONSES = {
-  greetings: [
-    "Hello! I'm ArcMind AI. How can I assist you today? 😊",
-    "Hi there! Ready for some intelligent conversation? 🚀",
-    "Welcome! I'm ArcMind, your AI assistant. Let's create something amazing! ✨"
-  ],
-  code: [
-    `\`\`\`javascript
-// Clean React component example
-function Button({ children, onClick }) {
-  return (
-    <button 
-      onClick={onClick}
-      className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
-    >
-      {children}
-    </button>
-  );
-}
-\`\`\``,
-    `**Code Best Practices:**
-1. Meaningful variable names
-2. Small, focused functions
-3. Proper error handling
-4. Consistent formatting
-5. Regular testing`
-  ],
-  ai: [
-    "Artificial Intelligence is transforming our world through machine learning, natural language processing, and computer vision.",
-    "AI helps automate tasks, analyze data, and create intelligent systems that can learn and adapt."
-  ],
-  creative: [
-    `**The Future of Technology** 🌟
-
-In the coming years, we'll see:
-• AI-human collaboration
-• Quantum computing breakthroughs
-• Sustainable tech solutions
-• Enhanced virtual experiences
-
-The possibilities are endless! 🚀`,
-    `**Creative Writing Prompt:**
-
-Write a story about an AI that discovers human emotions. 
-Explore themes of consciousness, friendship, and what it means to be alive. 📖`
-  ]
-}
+import { generateFakeAIResponse } from './utils/aiAlgorithm'
+import { cn } from './utils/cn'
 
 function App() {
-  const [welcomeComplete, setWelcomeComplete] = useState(false)
-  const [messages, setMessages] = useState([])
+  const [hasStarted, setHasStarted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [showToast, setShowToast] = useState(true)
+  const [chatHistory, setChatHistory] = useState([])
 
-  // Generate AI response
-  const getAIResponse = (message) => {
-    const msg = message.toLowerCase()
-    
-    if (msg.includes('hello') || msg.includes('hi')) {
-      return AI_RESPONSES.greetings[Math.floor(Math.random() * AI_RESPONSES.greetings.length)]
-    }
-    
-    if (msg.includes('code') || msg.includes('program') || msg.includes('javascript')) {
-      return AI_RESPONSES.code[Math.floor(Math.random() * AI_RESPONSES.code.length)]
-    }
-    
-    if (msg.includes('ai') || msg.includes('artificial')) {
-      return AI_RESPONSES.ai[Math.floor(Math.random() * AI_RESPONSES.ai.length)]
-    }
-    
-    if (msg.includes('write') || msg.includes('story') || msg.includes('creative')) {
-      return AI_RESPONSES.creative[Math.floor(Math.random() * AI_RESPONSES.creative.length)]
-    }
-    
-    return "That's an interesting question! Based on my knowledge, I'd say this is worth exploring further. Could you tell me more about what you're looking for?"
-  }
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => setReady(true), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
-  const handleWelcomeComplete = () => {
-    setWelcomeComplete(true)
-    setMessages([{
-      id: Date.now(),
-      role: 'assistant',
-      content: `# 🎉 Welcome to ArcMind AI!
+  // Auto-hide toast
+  useEffect(() => {
+    if (!hasStarted) return
+    const timer = setTimeout(() => setShowToast(false), 5000)
+    return () => clearTimeout(timer)
+  }, [hasStarted])
 
-## ✨ **Features:**
-• 100% Local & Private
-• Smart AI Responses
-• Beautiful Animations
-• No API Required
-
-**Try asking me:**
-- "Explain AI to a beginner"
-- "Help me with JavaScript code"
-- "Write a creative story"
-- "What's machine learning?"
-
-I'm here to help! 😊`,
-      timestamp: new Date().toISOString()
-    }])
-  }
-
-  const handleSendMessage = (message) => {
-    if (!message.trim() || isLoading) return
-
-    // Add user message
-    const userMsg = {
-      id: Date.now(),
-      role: 'user',
-      content: message,
-      timestamp: new Date().toISOString()
-    }
-    
-    setMessages(prev => [...prev, userMsg])
+  const handleStartChat = useCallback(() => {
     setIsLoading(true)
-
-    // Simulate AI thinking
+    
+    // Simulate AI initialization
     setTimeout(() => {
-      const aiResponse = getAIResponse(message)
+      // Generate initial AI greeting
+      const initialGreeting = generateFakeAIResponse('greeting', '')
       
-      const aiMsg = {
-        id: Date.now() + 1,
+      setChatHistory([{
+        id: '1',
+        content: initialGreeting,
         role: 'assistant',
+        timestamp: new Date(),
+        type: 'greeting'
+      }])
+      
+      setHasStarted(true)
+      setIsLoading(false)
+    }, 1200)
+  }, [])
+
+  const handleSendMessage = useCallback(async (message) => {
+    // Add user message
+    const userMessage = {
+      id: Date.now().toString(),
+      content: message,
+      role: 'user',
+      timestamp: new Date(),
+      type: 'text'
+    }
+    
+    setChatHistory(prev => [...prev, userMessage])
+    
+    // Simulate AI thinking
+    setIsLoading(true)
+    
+    setTimeout(() => {
+      // Generate AI response using algorithm
+      const aiResponse = generateFakeAIResponse('response', message)
+      
+      const aiMessage = {
+        id: `${Date.now()}-ai`,
         content: aiResponse,
-        timestamp: new Date().toISOString()
+        role: 'assistant',
+        timestamp: new Date(),
+        type: 'text'
       }
       
-      setMessages(prev => [...prev, aiMsg])
+      setChatHistory(prev => [...prev, aiMessage])
       setIsLoading(false)
-    }, 800)
-  }
+    }, 1500 + Math.random() * 1000)
+  }, [])
 
-  const handleClearChat = () => {
-    setMessages([])
-    setWelcomeComplete(false)
+  const handleReset = useCallback(() => {
+    setHasStarted(false)
+    setShowToast(true)
+    setChatHistory([])
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-950 to-black">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          >
+            <Brain className="h-20 w-20 text-neon-cyan" />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center"
+          >
+            <p className="text-lg font-semibold text-neon-green">ArcMind AI</p>
+            <p className="text-sm text-gray-400 mt-1">Initializing neural network...</p>
+          </motion.div>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
-      {/* Background Effects */}
-      <Suspense fallback={null}>
-        <BackgroundOrbs />
-        <GradientMesh />
-      </Suspense>
-
-      {/* Animated Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-black to-purple-950/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-blue-900/5 via-transparent to-transparent" />
-        
-        {/* Floating Particles */}
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900">
+      {/* Animated background particles */}
+      <div className="fixed inset-0 -z-10">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-cyan-400/30 rounded-full animate-float"
+            className="absolute rounded-full bg-neon-cyan/10"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.2}s`,
-              animationDuration: `${3 + Math.random() * 4}s`
+              width: Math.random() * 100 + 20,
+              height: Math.random() * 100 + 20,
+            }}
+            animate={{
+              x: [0, Math.sin(i) * 50, Math.cos(i) * 30, 0],
+              y: [0, Math.cos(i) * 30, Math.sin(i) * 50, 0],
+              scale: [1, 1.2, 0.9, 1],
+            }}
+            transition={{
+              duration: Math.random() * 20 + 10,
+              repeat: Infinity,
+              repeatType: 'reverse',
             }}
           />
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <Header onClearChat={handleClearChat} />
-        
-        <main className="flex-1">
-          <AnimatePresence mode="wait">
-            {!welcomeComplete ? (
-              <motion.div
-                key="welcome"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <WelcomeScreen onComplete={handleWelcomeComplete} />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="chat"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-              >
-                <ChatContainer
-                  messages={messages}
-                  onSendMessage={handleSendMessage}
-                  isLoading={isLoading}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
-
-        {/* Footer */}
-        <footer className="py-3 px-4 border-t border-white/10 backdrop-blur-lg bg-black/40">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Brain className="w-3 h-3" />
+      <AnimatePresence mode="wait">
+        {!hasStarted ? (
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <WelcomeScreen onStartChat={handleStartChat} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="min-h-screen"
+          >
+            {/* Header */}
+            <header className="sticky top-0 z-40 border-b border-gray-800/50 bg-black/30 backdrop-blur-xl">
+              <div className="container mx-auto px-4 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                    >
+                      <Brain className="h-8 w-8 text-neon-cyan" />
+                    </motion.div>
+                    <div>
+                      <h1 className="text-xl font-bold bg-gradient-to-r from-neon-cyan via-neon-green to-neon-blue bg-clip-text text-transparent">
+                        ArcMind AI
+                      </h1>
+                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Advanced AI Assistant
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-900/50 border border-gray-700">
+                      <div className="h-2 w-2 rounded-full bg-neon-green animate-pulse" />
+                      <span className="text-xs font-medium">AI Online</span>
+                    </div>
+                    
+                    <button
+                      onClick={handleReset}
+                      className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-700 hover:border-neon-green transition-all"
+                    >
+                      <Zap className="h-4 w-4 text-neon-green group-hover:rotate-12 transition-transform" />
+                      <span className="text-sm">New Chat</span>
+                    </button>
+                  </div>
                 </div>
-                <span className="text-sm text-gray-400">ArcMind AI • Local & Private</span>
               </div>
-              
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span>Online</span>
-                </div>
-                <div className="hidden md:flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
-                  <span>Animated UI</span>
-                </div>
+            </header>
+
+            {/* Main Chat */}
+            <div className="container mx-auto px-4 py-6">
+              <ChatContainer 
+                messages={chatHistory}
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-12 w-12 animate-spin text-neon-cyan" />
+              <div className="text-center">
+                <p className="text-lg font-semibold text-neon-green">Processing...</p>
+                <p className="text-sm text-gray-400 mt-1">AI is thinking about your question</p>
               </div>
             </div>
-          </div>
-        </footer>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {showToast && hasStarted && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            className="fixed bottom-4 right-4 z-40 md:bottom-6 md:right-6"
+          >
+            <div className={cn(
+              "rounded-xl bg-gray-900/90 border border-neon-green/30 px-4 py-3 shadow-xl",
+              "backdrop-blur-sm max-w-xs md:max-w-sm"
+            )}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-neon-green animate-pulse" />
+                    ArcMind AI Ready
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Start your conversation with AI
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowToast(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
