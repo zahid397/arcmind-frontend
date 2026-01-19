@@ -1,29 +1,84 @@
 // ========== CONFIGURATION ==========
-const CONFIG = {
-    API_BASE: 'https://arcmind-27ed.onrender.com',
-    ENDPOINTS: {
-        HEALTH: '/api/health',
-        CHAT: '/api/chat'
-    },
-    TIMEOUTS: {
-        HEALTH: 3000,
-        CHAT: 8000
-    },
-    MAX_RETRIES: 2
+const AI_CONFIG = {
+    name: "ArcMind AI",
+    version: "1.0",
+    personality: "helpful, creative, technical",
+    responseDelay: 800, // ms
+    typingSpeed: 30, // ms per character
+    intelligenceScore: 0
 };
 
-// ========== STATE ==========
-const STATE = {
-    isBackendAlive: false,
-    isDemoMode: true,
-    isTyping: false,
-    messages: [],
-    stats: {
-        total: 0,
-        backend: 0,
-        demo: 0,
-        avgResponseTime: 0
-    }
+// ========== KNOWLEDGE BASE ==========
+const KNOWLEDGE_BASE = {
+    greetings: [
+        "Hello! I'm ArcMind AI, running entirely in your browser.",
+        "Hi there! No backend needed - I'm pure frontend AI.",
+        "Hey! This demo works 24/7 with no sleeping servers."
+    ],
+    
+    topics: {
+        "machine learning": {
+            responses: [
+                "Machine Learning is a subset of AI where computers learn from data without explicit programming. It powers recommendations, image recognition, and more.",
+                "ML involves training algorithms on data to make predictions or decisions. Types include supervised, unsupervised, and reinforcement learning.",
+                "Deep learning, a ML subset using neural networks, has revolutionized fields like computer vision and NLP."
+            ],
+            score: 10
+        },
+        
+        "python": {
+            responses: [
+                "Python is a high-level programming language known for its simplicity and extensive libraries for data science and AI.",
+                "Here's a Python factorial function:\n\n```python\ndef factorial(n):\n    if n == 0:\n        return 1\n    else:\n        return n * factorial(n-1)\n```",
+                "Python's `scikit-learn`, `tensorflow`, and `pytorch` are essential for ML development."
+            ],
+            score: 8
+        },
+        
+        "quantum computing": {
+            responses: [
+                "Quantum computing uses quantum bits (qubits) that can be in multiple states simultaneously via superposition.",
+                "Unlike classical bits (0 or 1), qubits can be both 0 and 1 at once, enabling exponential processing power for certain problems.",
+                "Quantum computers could revolutionize cryptography, drug discovery, and optimization problems."
+            ],
+            score: 12
+        },
+        
+        "ai benefits": {
+            responses: [
+                "AI benefits include automation of repetitive tasks, data analysis at scale, improved healthcare diagnostics, and enhanced creativity.",
+                "AI can process vast amounts of data quickly, identify patterns humans miss, and work 24/7 without fatigue.",
+                "From personalized recommendations to autonomous vehicles, AI transforms industries and improves efficiency."
+            ],
+            score: 7
+        },
+        
+        "hackathon": {
+            responses: [
+                "Hackathons are great for rapid prototyping and learning new technologies under pressure.",
+                "For hackathons, focus on a working demo with clear value proposition. UI/UX matters!",
+                "Hackathon tip: Build something that works end-to-end, even if features are limited."
+            ],
+            score: 5
+        },
+        
+        "javascript": {
+            responses: [
+                "JavaScript is the language of the web. Modern ES6+ features include async/await, arrow functions, and modules.",
+                "Here's a factorial function in JavaScript:\n\n```javascript\nfunction factorial(n) {\n    return n <= 1 ? 1 : n * factorial(n - 1);\n}\n```",
+                "JavaScript runs in browsers and servers (Node.js), making it versatile for full-stack development."
+            ],
+            score: 9
+        }
+    },
+    
+    fallbacks: [
+        "That's an interesting topic! As a frontend AI, I'm designed to handle common queries efficiently.",
+        "I'm processing your query locally in the browser. No API calls needed!",
+        "This response is generated entirely in JavaScript - no backend required.",
+        "Since I run in your browser, I provide instant responses with no network latency.",
+        "Frontend AI at your service! All processing happens right here."
+    ]
 };
 
 // ========== DOM ELEMENTS ==========
@@ -31,36 +86,20 @@ const DOM = {};
 
 function initDOM() {
     DOM.loader = document.getElementById('loader');
-    DOM.statusBanner = document.getElementById('statusBanner');
-    DOM.statusText = document.getElementById('statusText');
-    DOM.statusTime = document.getElementById('statusTime');
-    DOM.wakeBtn = document.getElementById('wakeBtn');
-    DOM.wakeBigBtn = document.getElementById('wakeBigBtn');
-    DOM.liveStatus = document.getElementById('liveStatus');
-    DOM.clearBtn = document.getElementById('clearBtn');
-    DOM.themeBtn = document.getElementById('themeBtn');
-    DOM.infoBtn = document.getElementById('infoBtn');
+    DOM.scoreValue = document.getElementById('scoreValue');
     DOM.welcomeSection = document.getElementById('welcomeSection');
-    DOM.welcomeDesc = document.getElementById('welcomeDesc');
     DOM.chatSection = document.getElementById('chatSection');
     DOM.messagesContainer = document.getElementById('messagesContainer');
     DOM.messageInput = document.getElementById('messageInput');
     DOM.sendBtn = document.getElementById('sendBtn');
+    DOM.clearBtn = document.getElementById('clearBtn');
+    DOM.themeBtn = document.getElementById('themeBtn');
+    DOM.demoBtn = document.getElementById('demoBtn');
+    DOM.startChat = document.getElementById('startChat');
     DOM.promptBtns = document.querySelectorAll('.prompt-btn');
-    DOM.infoModal = document.getElementById('infoModal');
-    DOM.closeModal = document.getElementById('closeModal');
-    DOM.viewSource = document.getElementById('viewSource');
 }
 
 // ========== UTILITIES ==========
-function debounce(fn, delay) {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn(...args), delay);
-    };
-}
-
 function escapeHTML(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -80,168 +119,117 @@ function scrollToBottom() {
     });
 }
 
-// ========== API FUNCTIONS ==========
-async function fetchWithTimeout(url, timeout, options = {}) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+function simulateTyping(text, callback) {
+    const words = text.split(' ');
+    let i = 0;
+    let currentText = '';
     
-    try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-        clearTimeout(timeoutId);
-        return response;
-    } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
+    function typeNext() {
+        if (i < words.length) {
+            currentText += words[i] + ' ';
+            i++;
+            callback(currentText.trim());
+            setTimeout(typeNext, AI_CONFIG.typingSpeed);
+        }
     }
+    
+    typeNext();
 }
 
-async function checkHealth() {
-    try {
-        const response = await fetchWithTimeout(
-            `${CONFIG.API_BASE}${CONFIG.ENDPOINTS.HEALTH}`,
-            CONFIG.TIMEOUTS.HEALTH
-        );
-        
-        const isAlive = response.ok;
-        STATE.isBackendAlive = isAlive;
-        STATE.isDemoMode = !isAlive;
-        
-        updateStatus(isAlive ? 'live' : 'demo');
-        updateStatusTime();
-        
-        return isAlive;
-    } catch (error) {
-        console.warn('Health check failed:', error.message);
-        STATE.isBackendAlive = false;
-        STATE.isDemoMode = true;
-        updateStatus('demo');
-        return false;
+// ========== AI ENGINE ==========
+function analyzeQuery(query) {
+    const lowerQuery = query.toLowerCase().trim();
+    
+    // Check for greetings
+    if (lowerQuery.match(/\b(hi|hello|hey|greetings)\b/)) {
+        return {
+            type: 'greeting',
+            confidence: 0.9,
+            topic: 'greetings'
+        };
     }
-}
-
-async function sendChat(message) {
-    for (let attempt = 1; attempt <= CONFIG.MAX_RETRIES; attempt++) {
-        try {
-            const response = await fetchWithTimeout(
-                `${CONFIG.API_BASE}${CONFIG.ENDPOINTS.CHAT}`,
-                CONFIG.TIMEOUTS.CHAT,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({ message })
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-            STATE.stats.backend++;
-            
+    
+    // Check known topics
+    for (const [topic, data] of Object.entries(KNOWLEDGE_BASE.topics)) {
+        if (lowerQuery.includes(topic)) {
             return {
-                success: true,
-                text: data.response || data.message || 'No response',
-                source: 'backend',
-                attempt
-            };
-        } catch (error) {
-            console.warn(`Attempt ${attempt} failed:`, error.message);
-            
-            if (attempt < CONFIG.MAX_RETRIES) {
-                await new Promise(resolve => 
-                    setTimeout(resolve, 500 * attempt)
-                );
-                continue;
-            }
-            
-            return {
-                success: false,
-                error: error.message,
-                source: 'failed'
+                type: 'topic',
+                confidence: 0.8,
+                topic: topic,
+                score: data.score
             };
         }
     }
-}
-
-// ========== STATUS UPDATES ==========
-function updateStatus(type) {
-    if (!DOM.statusBanner || !DOM.statusText) return;
     
-    DOM.statusBanner.className = `status-banner ${type}`;
-    
-    switch (type) {
-        case 'live':
-            DOM.statusText.textContent = 'Backend connected';
-            DOM.liveStatus.textContent = 'Live Mode';
-            DOM.welcomeDesc.textContent = 'Backend is awake! Chat with real AI now.';
-            break;
-        case 'demo':
-            DOM.statusText.textContent = 'Backend sleeping (demo mode)';
-            DOM.liveStatus.textContent = 'Demo Mode';
-            DOM.welcomeDesc.textContent = 'Hackathon project with intelligent backend sleep handling';
-            break;
-        case 'checking':
-            DOM.statusText.textContent = 'Checking backend status...';
-            break;
+    // Check for questions
+    if (lowerQuery.includes('?')) {
+        return {
+            type: 'question',
+            confidence: 0.7,
+            topic: 'general'
+        };
     }
-}
-
-function updateStatusTime() {
-    if (DOM.statusTime) {
-        DOM.statusTime.textContent = `Last checked: ${formatTime()}`;
-    }
-}
-
-// ========== MESSAGE HANDLING ==========
-function addMessage(text, sender, isDemo = false) {
-    const id = Date.now();
-    const time = new Date();
     
-    const message = {
-        id,
-        text,
-        sender,
-        isDemo,
-        time,
-        timestamp: time.getTime()
+    // Default
+    return {
+        type: 'general',
+        confidence: 0.5,
+        topic: 'general'
     };
-    
-    STATE.messages.push(message);
-    STATE.stats.total++;
-    if (isDemo) STATE.stats.demo++;
-    
-    renderMessage(message);
-    updateStats();
-    
-    if (DOM.welcomeSection.classList.contains('active') && sender === 'user') {
-        DOM.welcomeSection.classList.remove('active');
-    }
 }
 
-function renderMessage(message) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${message.sender}-message`;
+function generateResponse(query) {
+    const analysis = analyzeQuery(query);
+    let responses;
+    let scoreToAdd = 0;
     
-    const avatarClass = message.sender === 'user' ? 'user-avatar' : 'ai-avatar';
-    const avatarIcon = message.sender === 'user' ? 'fa-user' : 'fa-robot';
+    switch (analysis.type) {
+        case 'greeting':
+            responses = KNOWLEDGE_BASE.greetings;
+            scoreToAdd = 3;
+            break;
+            
+        case 'topic':
+            responses = KNOWLEDGE_BASE.topics[analysis.topic].responses;
+            scoreToAdd = analysis.score || 5;
+            break;
+            
+        default:
+            responses = KNOWLEDGE_BASE.fallbacks;
+            scoreToAdd = 2;
+    }
+    
+    // Update intelligence score
+    AI_CONFIG.intelligenceScore += scoreToAdd;
+    updateScore();
+    
+    // Select random response from available ones
+    const response = responses[Math.floor(Math.random() * responses.length)];
+    
+    // Add some variety with occasional emoji
+    const emojis = ['🤖', '⚡', '💡', '🧠', '🚀'];
+    const shouldAddEmoji = Math.random() > 0.7;
+    
+    return shouldAddEmoji 
+        ? `${response} ${emojis[Math.floor(Math.random() * emojis.length)]}`
+        : response;
+}
+
+// ========== UI MANAGEMENT ==========
+function addMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    const avatarClass = sender === 'user' ? 'user-avatar' : 'ai-avatar';
+    const avatarIcon = sender === 'user' ? 'fa-user' : 'fa-robot';
     
     messageDiv.innerHTML = `
         <div class="message-avatar ${avatarClass}">
             <i class="fas ${avatarIcon}"></i>
         </div>
         <div class="message-content">
-            <div class="message-text">${escapeHTML(message.text)}</div>
-            <div class="message-time">
-                ${formatTime(message.time)}
-                ${message.isDemo ? '<span class="demo-badge">DEMO</span>' : ''}
-            </div>
+            <div class="message-text">${escapeHTML(text)}</div>
+            <div class="message-time">${formatTime()}</div>
         </div>
     `;
     
@@ -273,7 +261,6 @@ function showTyping() {
     `;
     
     DOM.messagesContainer.appendChild(typingDiv);
-    STATE.isTyping = true;
     scrollToBottom();
 }
 
@@ -283,177 +270,64 @@ function hideTyping() {
         indicator.style.animation = 'fadeOut 0.3s forwards';
         setTimeout(() => indicator.remove(), 300);
     }
-    STATE.isTyping = false;
 }
 
-// ========== DEMO RESPONSES ==========
-function getDemoResponse(userMessage) {
-    const responses = [
-        `I received: "${userMessage.substring(0, 50)}...". Currently in demo mode while backend wakes up from Render sleep.`,
-        `Demo response: For "${userMessage.substring(0, 40)}...", the live backend AI would provide detailed analysis.`,
-        `🔋 Backend is starting up... This is a demo response. Try waking the backend for real AI!`,
-        `Thanks for your message! The backend server is sleeping (Render free tier). Use the wake button above.`,
-        `In live mode, I'd process this with DeepSeek AI. Meanwhile, here's a demo response.`
-    ];
-    
-    // Smart responses for questions
-    if (userMessage.includes('?')) {
-        return "That's a great question! The backend AI can provide a comprehensive answer once it wakes up.";
-    }
-    
-    // Code-related queries
-    if (userMessage.toLowerCase().includes('code') || 
-        userMessage.toLowerCase().includes('function') ||
-        userMessage.toLowerCase().includes('python')) {
-        return "For code generation and analysis, the live backend with DeepSeek AI works best. Try waking it!";
-    }
-    
-    return responses[Math.floor(Math.random() * responses.length)];
-}
-
-// ========== WAKE BACKEND ==========
-async function wakeBackend() {
-    if (DOM.wakeBtn.disabled) return;
-    
-    // Disable buttons
-    DOM.wakeBtn.disabled = true;
-    DOM.wakeBigBtn.disabled = true;
-    DOM.wakeBtn.querySelector('.btn-spinner').style.display = 'inline-block';
-    DOM.wakeBtn.innerHTML = '<span class="btn-spinner"></span> Waking...';
-    
-    updateStatus('checking');
-    
-    try {
-        let isAlive = false;
-        const maxAttempts = 3;
-        
-        for (let i = 0; i < maxAttempts; i++) {
-            console.log(`Wake attempt ${i + 1}`);
-            isAlive = await checkHealth();
-            
-            if (isAlive) break;
-            
-            // Progressive delay
-            await new Promise(resolve => 
-                setTimeout(resolve, 2000 * (i + 1))
-            );
-        }
-        
-        if (isAlive) {
-            addMessage('✅ Backend is now awake! All responses will be from live AI.', 'system');
-            console.log('✅ Backend successfully woken up');
-        } else {
-            addMessage('⚠️ Backend is taking longer to wake up. Continue in demo mode.', 'system');
-        }
-        
-    } catch (error) {
-        console.error('Wake error:', error);
-        addMessage(`❌ Failed to wake backend: ${error.message}`, 'system');
-        updateStatus('demo');
-    } finally {
-        // Re-enable after delay
-        setTimeout(() => {
-            DOM.wakeBtn.disabled = false;
-            DOM.wakeBigBtn.disabled = false;
-            DOM.wakeBtn.querySelector('.btn-spinner').style.display = 'none';
-            DOM.wakeBtn.innerHTML = '🚀 Wake Backend';
-        }, 2000);
+function updateScore() {
+    if (DOM.scoreValue) {
+        DOM.scoreValue.textContent = AI_CONFIG.intelligenceScore;
     }
 }
 
-// ========== MESSAGE SENDING ==========
-async function sendMessage() {
-    const text = DOM.messageInput.value.trim();
-    if (!text || STATE.isTyping) return;
-    
-    // Disable send button
-    DOM.sendBtn.disabled = true;
-    DOM.sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
+// ========== MESSAGE PROCESSING ==========
+async function processMessage(query) {
     // Add user message
-    addMessage(text, 'user');
+    addMessage(query, 'user');
     DOM.messageInput.value = '';
     DOM.messageInput.style.height = 'auto';
     
-    // Show typing
+    // Disable send button during processing
+    DOM.sendBtn.disabled = true;
+    
+    // Show typing indicator
     showTyping();
     
-    const startTime = Date.now();
-    
-    try {
-        let response;
-        
-        if (STATE.isBackendAlive) {
-            // Try real backend
-            response = await sendChat(text);
-            
-            if (!response.success) {
-                // Fallback to demo
-                STATE.isBackendAlive = false;
-                STATE.isDemoMode = true;
-                updateStatus('demo');
-                response = {
-                    success: true,
-                    text: getDemoResponse(text),
-                    source: 'demo'
-                };
-            }
-        } else {
-            // Direct demo
-            response = {
-                success: true,
-                text: getDemoResponse(text),
-                source: 'demo'
-            };
-        }
-        
-        // Simulate typing delay
-        const elapsed = Date.now() - startTime;
-        const minDelay = response.source === 'demo' ? 1000 : 500;
-        const extraDelay = Math.max(0, minDelay - elapsed);
-        
-        if (extraDelay > 0) {
-            await new Promise(resolve => setTimeout(resolve, extraDelay));
-        }
-        
-        // Add AI response
+    // Generate response after delay
+    setTimeout(() => {
         hideTyping();
-        addMessage(response.text, 'ai', response.source === 'demo');
+        const response = generateResponse(query);
         
-        // Update response time
-        const totalTime = elapsed + extraDelay;
-        STATE.stats.avgResponseTime = 
-            (STATE.stats.avgResponseTime * (STATE.stats.total - 1) + totalTime) / STATE.stats.total;
+        // Simulate typing effect for AI response
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai-message';
+        messageDiv.id = 'aiResponse';
         
-        // Background health check
-        if (response.source === 'demo') {
-            setTimeout(async () => {
-                const isAlive = await checkHealth();
-                if (isAlive) {
-                    addMessage('🎉 Backend woke up! Next response will be live.', 'system');
-                }
-            }, 3000);
-        }
+        messageDiv.innerHTML = `
+            <div class="message-avatar ai-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text" id="aiText"></div>
+                <div class="message-time">${formatTime()}</div>
+            </div>
+        `;
         
-    } catch (error) {
-        console.error('Send error:', error);
-        hideTyping();
-        addMessage('Error sending message. Please try again.', 'system');
-    } finally {
+        DOM.messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+        
+        // Type out the response
+        const textElement = messageDiv.querySelector('#aiText');
+        simulateTyping(response, (text) => {
+            textElement.innerHTML = escapeHTML(text);
+            scrollToBottom();
+        });
+        
         // Re-enable send button
         DOM.sendBtn.disabled = false;
-        DOM.sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         DOM.messageInput.focus();
-    }
+    }, AI_CONFIG.responseDelay);
 }
 
-// ========== STATS ==========
-function updateStats() {
-    // Could update stats display if needed
-    console.log('Stats:', STATE.stats);
-}
-
-// ========== EVENT LISTENERS ==========
+// ========== EVENT HANDLERS ==========
 function setupEvents() {
     // Auto-resize textarea
     DOM.messageInput.addEventListener('input', function() {
@@ -462,28 +336,27 @@ function setupEvents() {
     });
     
     // Send message
-    DOM.sendBtn.addEventListener('click', sendMessage);
+    DOM.sendBtn.addEventListener('click', () => {
+        const text = DOM.messageInput.value.trim();
+        if (text) processMessage(text);
+    });
     
     // Enter to send
     DOM.messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            const text = DOM.messageInput.value.trim();
+            if (text) processMessage(text);
         }
     });
-    
-    // Wake buttons
-    DOM.wakeBtn.addEventListener('click', wakeBackend);
-    DOM.wakeBigBtn.addEventListener('click', wakeBackend);
     
     // Clear chat
     DOM.clearBtn.addEventListener('click', () => {
         if (confirm('Clear all messages?')) {
             DOM.messagesContainer.innerHTML = '';
             DOM.welcomeSection.classList.add('active');
-            STATE.messages = [];
-            STATE.stats = { total: 0, backend: 0, demo: 0, avgResponseTime: 0 };
-            addMessage('Chat cleared. Start a new conversation!', 'system');
+            AI_CONFIG.intelligenceScore = 0;
+            updateScore();
         }
     });
     
@@ -495,24 +368,10 @@ function setupEvents() {
             : '<i class="fas fa-sun"></i>';
     });
     
-    // Info modal
-    DOM.infoBtn.addEventListener('click', () => {
-        DOM.infoModal.classList.add('active');
-    });
-    
-    DOM.closeModal.addEventListener('click', () => {
-        DOM.infoModal.classList.remove('active');
-    });
-    
-    DOM.viewSource.addEventListener('click', () => {
-        window.open('https://github.com/zahid397/arcmind-frontend', '_blank');
-    });
-    
-    // Click outside modal to close
-    window.addEventListener('click', (e) => {
-        if (e.target === DOM.infoModal) {
-            DOM.infoModal.classList.remove('active');
-        }
+    // Start chat button
+    DOM.startChat.addEventListener('click', () => {
+        DOM.welcomeSection.classList.remove('active');
+        addMessage("Hello! I'm ArcMind AI, running entirely in your browser. No backend needed!", 'ai');
     });
     
     // Prompt buttons
@@ -523,46 +382,72 @@ function setupEvents() {
             DOM.messageInput.focus();
             DOM.messageInput.style.height = 'auto';
             DOM.messageInput.style.height = Math.min(DOM.messageInput.scrollHeight, 120) + 'px';
+            
+            // Auto-switch to chat if in welcome screen
+            if (DOM.welcomeSection.classList.contains('active')) {
+                DOM.welcomeSection.classList.remove('active');
+            }
         });
     });
     
-    // Tech card hover effects
-    document.querySelectorAll('.tech-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-10px)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-        });
+    // Demo info button
+    DOM.demoBtn.addEventListener('click', () => {
+        alert(`ArcMind AI Demo\n\n• Pure frontend implementation\n• No backend API calls\n• Always online\n• Works 24/7\n• Built with HTML5, CSS3, JavaScript\n\nIntelligence Score: ${AI_CONFIG.intelligenceScore}`);
     });
 }
 
 // ========== INITIALIZATION ==========
-async function initApp() {
+function initApp() {
     initDOM();
     setupEvents();
+    updateScore();
     
-    // Initial health check
-    const isAlive = await checkHealth();
-    
-    if (isAlive) {
-        addMessage('✅ Backend is connected and ready!', 'system');
-    } else {
-        addMessage('🔋 Backend is sleeping (Render free tier). Use demo mode or wake it up!', 'system');
-    }
-    
-    // Periodic health checks
-    setInterval(async () => {
-        if (!STATE.isBackendAlive) {
-            await checkHealth();
-        }
-    }, 120000); // Every 2 minutes
-    
-    console.log('🚀 ArcMind AI initialized');
+    console.log('🚀 ArcMind AI initialized - Standalone Mode');
+    console.log('✅ No backend dependency');
+    console.log('✅ Always online');
+    console.log('✅ Pure frontend implementation');
 }
 
 // ========== START APP ==========
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initApp, 100);
 });
+
+// Light theme CSS
+document.head.insertAdjacentHTML('beforeend', `
+<style>
+.light-theme {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    color: #1e293b !important;
+}
+
+.light-theme .app-container {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.light-theme .header,
+.light-theme .input-section {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: #e2e8f0 !important;
+}
+
+.light-theme .ai-message .message-content {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+.light-theme .message-input,
+.light-theme .input-box {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(10px); }
+}
+</style>
+`);
