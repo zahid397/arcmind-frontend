@@ -2,107 +2,75 @@ import { useEffect, useRef } from 'react'
 
 const GradientMesh = () => {
   const canvasRef = useRef(null)
-  const pointsRef = useRef([])
-  const rafRef = useRef(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
-    const dpr = window.devicePixelRatio || 1
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    const colors = [
-      [59, 130, 246],  // blue
-      [139, 92, 246],  // purple
-      [6, 182, 212],   // cyan
-    ]
-
-    class Point {
-      constructor() {
-        this.reset()
-      }
-
-      reset() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.vx = (Math.random() - 0.5) * 0.25 * dpr
-        this.vy = (Math.random() - 0.5) * 0.25 * dpr
-        this.color = colors[Math.floor(Math.random() * colors.length)]
-        this.size = Math.random() * 1.5 + 0.5
-      }
-
-      update() {
-        this.x += this.vx
-        this.y += this.vy
-
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1
-      }
-
-      draw() {
-        ctx.beginPath()
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${this.color[0]},${this.color[1]},${this.color[2]},0.06)`
-        ctx.fill()
-      }
-    }
+    let animationId
 
     const resize = () => {
-      const w = window.innerWidth
-      const h = window.innerHeight
-      canvas.width = w * dpr
-      canvas.height = h * dpr
-      canvas.style.width = `${w}px`
-      canvas.style.height = `${h}px`
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
     }
 
-    const initPoints = () => {
-      const count = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 60000), 12)
-      pointsRef.current = Array.from({ length: count }, () => new Point())
-    }
+    const points = Array.from({ length: 8 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      color: `rgba(${Math.floor(Math.random() * 100 + 155)}, ${Math.floor(Math.random() * 100 + 155)}, 255, 0.05)`
+    }))
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      const pts = pointsRef.current
+      // Update points
+      points.forEach(point => {
+        point.x += point.vx
+        point.y += point.vy
 
-      pts.forEach(p => {
-        p.update()
-        p.draw()
+        // Bounce off edges
+        if (point.x < 0 || point.x > canvas.width) point.vx *= -1
+        if (point.y < 0 || point.y > canvas.height) point.vy *= -1
+
+        // Draw point
+        ctx.beginPath()
+        ctx.fillStyle = point.color
+        ctx.arc(point.x, point.y, 2, 0, Math.PI * 2)
+        ctx.fill()
       })
 
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x
-          const dy = pts[i].y - pts[j].y
-          const dist = Math.hypot(dx, dy)
+      // Draw connections
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          const dx = points[i].x - points[j].x
+          const dy = points[i].y - points[j].y
+          const distance = Math.sqrt(dx * dx + dy * dy)
 
-          if (dist < 160) {
-            ctx.strokeStyle = `rgba(${pts[i].color[0]},${pts[i].color[1]},${pts[i].color[2]},${0.06 * (1 - dist / 160)})`
-            ctx.lineWidth = 0.3
+          if (distance < 200) {
             ctx.beginPath()
-            ctx.moveTo(pts[i].x, pts[i].y)
-            ctx.lineTo(pts[j].x, pts[j].y)
+            const alpha = 0.1 * (1 - distance/200)
+            ctx.strokeStyle = `rgba(100, 200, 255, ${alpha})`
+            ctx.lineWidth = 0.5
+            ctx.moveTo(points[i].x, points[i].y)
+            ctx.lineTo(points[j].x, points[j].y)
             ctx.stroke()
           }
         }
       }
 
-      rafRef.current = requestAnimationFrame(animate)
+      animationId = requestAnimationFrame(animate)
     }
 
     resize()
-    initPoints()
-
-    if (!reduceMotion) animate()
-
     window.addEventListener('resize', resize)
+    animate()
+
     return () => {
       window.removeEventListener('resize', resize)
-      cancelAnimationFrame(rafRef.current)
+      cancelAnimationFrame(animationId)
     }
   }, [])
 
