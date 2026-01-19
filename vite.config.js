@@ -2,7 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  base: '/', // ✅ REQUIRED for Cloudflare Pages
+
   plugins: [react()],
+
   build: {
     outDir: 'dist',
     sourcemap: false,
@@ -11,11 +14,12 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['framer-motion', 'lucide-react'],
-          utils: ['date-fns', 'clsx', 'tailwind-merge']
+          utils: ['clsx', 'tailwind-merge']
         }
       }
     }
   },
+
   server: {
     port: 3000,
     host: true
