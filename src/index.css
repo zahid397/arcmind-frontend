@@ -4,69 +4,102 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    --neon-cyan: #00f3ff;
+    --neon-green: #00ff88;
+    --neon-blue: #0088ff;
+    --neon-purple: #aa00ff;
+  }
+
+  * {
+    @apply border-gray-800;
   }
 
   body {
-    @apply bg-black text-white antialiased overflow-x-hidden;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+    @apply bg-black text-gray-100 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-neon-green/30 text-white;
+  }
+
+  /* Focus */
+  :focus-visible {
+    @apply outline-none ring-2 ring-neon-cyan ring-offset-2 ring-offset-black;
   }
 }
 
 @layer utilities {
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-blue-500/50 to-purple-500/50 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply from-blue-500 to-purple-500;
-  }
-
-  /* Text effects */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(to right, #00f3ff, #00ff88, #0088ff);
+    background-size: 200% auto;
   }
 
-  /* Glass effects */
-  .glass {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+  .glass-effect {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* Animations */
-  .animate-float-slow {
-    animation: float 8s ease-in-out infinite;
+  .neon-shadow {
+    box-shadow: 
+      0 0 20px rgba(0, 243, 255, 0.3),
+      0 0 40px rgba(0, 243, 255, 0.2),
+      inset 0 0 20px rgba(0, 243, 255, 0.1);
   }
 
-  .animate-wave {
-    animation: wave 2s infinite;
+  .neon-text {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor;
   }
 
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient 8s ease infinite;
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
   }
-}
 
-/* Smooth transitions */
-* {
-  @apply transition-all duration-200;
-}
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
 
-/* Prevent layout shift */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Selection color */
-::selection {
-  @apply bg-blue-500/30 text-white;
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-pulse-slow,
+    .animate-shimmer,
+    .animate-spin-slow,
+    .animate-bounce-slow {
+      animation: none;
+    }
+  }
 }
