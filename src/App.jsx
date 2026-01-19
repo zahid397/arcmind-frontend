@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Header from './components/Header'
 import WelcomeScreen from './components/WelcomeScreen'
@@ -9,233 +9,169 @@ import { Brain, Sparkles } from 'lucide-react'
 const BackgroundOrbs = lazy(() => import('./effects/BackgroundOrbs'))
 const GradientMesh = lazy(() => import('./effects/GradientMesh'))
 
-// Local AI responses database
+// Local AI responses
 const AI_RESPONSES = {
   greetings: [
     "Hello! I'm ArcMind AI. How can I assist you today? 😊",
     "Hi there! Ready for some intelligent conversation? 🚀",
-    "Welcome! I'm ArcMind, your local AI assistant. 💡"
+    "Welcome! I'm ArcMind, your AI assistant. Let's create something amazing! ✨"
   ],
-  
-  tech: [
-    `Here's a helpful approach:
-
-**Code Structure:**
-\`\`\`javascript
-// Clean, maintainable code
-function processRequest(input) {
-  // 1. Validate input
-  if (!input) return null;
-  
-  // 2. Process data
-  const result = input
-    .split(' ')
-    .map(word => word.trim())
-    .filter(Boolean);
-  
-  // 3. Return meaningful output
-  return result.length > 0 ? result : ['No valid input'];
+  code: [
+    `\`\`\`javascript
+// Clean React component example
+function Button({ children, onClick }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+    >
+      {children}
+    </button>
+  );
 }
-\`\`\`
-
-**Best Practices:**
-• Write readable code
-• Add meaningful comments
-• Handle edge cases
-• Test thoroughly`,
-
-    `**Web Development Tips:**
-
-1. **Performance:**
-   - Use lazy loading
-   - Optimize images
-   - Minimize bundle size
-
-2. **Security:**
-   - Validate inputs
-   - Use HTTPS
-   - Regular updates
-
-3. **UX:**
-   - Fast loading
-   - Mobile responsive
-   - Accessible design`
+\`\`\``,
+    `**Code Best Practices:**
+1. Meaningful variable names
+2. Small, focused functions
+3. Proper error handling
+4. Consistent formatting
+5. Regular testing`
   ],
-  
+  ai: [
+    "Artificial Intelligence is transforming our world through machine learning, natural language processing, and computer vision.",
+    "AI helps automate tasks, analyze data, and create intelligent systems that can learn and adapt."
+  ],
   creative: [
-    `**A Future Vision:** 🌟
+    `**The Future of Technology** 🌟
 
-Imagine a world where technology enhances human creativity. 
-AI becomes a collaborative partner, helping artists, writers, 
-and innovators explore new frontiers of expression.
+In the coming years, we'll see:
+• AI-human collaboration
+• Quantum computing breakthroughs
+• Sustainable tech solutions
+• Enhanced virtual experiences
 
-*The digital canvas expands*
-*Ideas flow like electricity*
-*Creativity meets computation*
-*Shaping tomorrow, today* 🎨`,
+The possibilities are endless! 🚀`,
+    `**Creative Writing Prompt:**
 
-    `**Short Story:** 📖
-
-In 2030, AI assistants like me help people:
-- Solve complex problems
-- Learn new skills faster
-- Create amazing art
-- Connect ideas in new ways
-
-The future is collaborative, not competitive! 🤝`
-  ],
-  
-  general: [
-    "That's an interesting topic! Based on general knowledge, here are some insights...",
-    "Great question! Let me break this down from multiple perspectives.",
-    "I understand you're asking about that. Here's what I know..."
+Write a story about an AI that discovers human emotions. 
+Explore themes of consciousness, friendship, and what it means to be alive. 📖`
   ]
 }
 
 function App() {
   const [welcomeComplete, setWelcomeComplete] = useState(false)
-  const [messages, setMessages] = useState(() => {
-    try {
-      const saved = localStorage.getItem('arcmind-chat-v2')
-      return saved ? JSON.parse(saved) : []
-    } catch {
-      return []
-    }
-  })
+  const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
-  // Save to localStorage
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('arcmind-chat-v2', JSON.stringify(messages))
-    }
-  }, [messages])
-
-  const handleWelcomeComplete = useCallback(() => {
-    setWelcomeComplete(true)
-    if (messages.length === 0) {
-      setMessages([{
-        id: Date.now(),
-        role: 'assistant',
-        content: `# 🚀 Welcome to ArcMind AI!
-
-## Features:
-• **100% Local** - No API required
-• **Smart Responses** - Intelligent logic
-• **Privacy First** - Your data stays with you
-• **Always Free** - No limitations
-
-**Try asking:**
-- "Explain AI to a beginner"
-- "Help me with JavaScript code"
-- "Write a creative story"
-- "What's the future of technology?"
-
-How can I help you today? ✨`,
-        timestamp: new Date().toISOString()
-      }])
-    }
-  }, [messages])
-
-  const generateResponse = useCallback((userMessage) => {
-    const msg = userMessage.toLowerCase()
+  // Generate AI response
+  const getAIResponse = (message) => {
+    const msg = message.toLowerCase()
     
-    if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+    if (msg.includes('hello') || msg.includes('hi')) {
       return AI_RESPONSES.greetings[Math.floor(Math.random() * AI_RESPONSES.greetings.length)]
     }
     
-    if (msg.includes('code') || msg.includes('program') || msg.includes('javascript') || 
-        msg.includes('react') || msg.includes('function') || msg.includes('bug')) {
-      return AI_RESPONSES.tech[Math.floor(Math.random() * AI_RESPONSES.tech.length)]
+    if (msg.includes('code') || msg.includes('program') || msg.includes('javascript')) {
+      return AI_RESPONSES.code[Math.floor(Math.random() * AI_RESPONSES.code.length)]
     }
     
-    if (msg.includes('write') || msg.includes('story') || msg.includes('creative') || 
-        msg.includes('poem') || msg.includes('art')) {
+    if (msg.includes('ai') || msg.includes('artificial')) {
+      return AI_RESPONSES.ai[Math.floor(Math.random() * AI_RESPONSES.ai.length)]
+    }
+    
+    if (msg.includes('write') || msg.includes('story') || msg.includes('creative')) {
       return AI_RESPONSES.creative[Math.floor(Math.random() * AI_RESPONSES.creative.length)]
     }
     
-    if (msg.includes('ai') || msg.includes('artificial') || msg.includes('machine learning')) {
-      return `**About AI:** 🤖
+    return "That's an interesting question! Based on my knowledge, I'd say this is worth exploring further. Could you tell me more about what you're looking for?"
+  }
 
-Artificial Intelligence is transforming our world through:
+  const handleWelcomeComplete = () => {
+    setWelcomeComplete(true)
+    setMessages([{
+      id: Date.now(),
+      role: 'assistant',
+      content: `# 🎉 Welcome to ArcMind AI!
 
-**Key Areas:**
-1. **Machine Learning** - Pattern recognition
-2. **NLP** - Understanding human language
-3. **Computer Vision** - Image analysis
-4. **Robotics** - Physical automation
+## ✨ **Features:**
+• 100% Local & Private
+• Smart AI Responses
+• Beautiful Animations
+• No API Required
 
-**Current Trends:**
-- Generative AI (like me!)
-- Autonomous systems
-- Ethical AI development
-- Human-AI collaboration`
-    }
-    
-    if (msg.includes('future') || msg.includes('2030') || msg.includes('technology')) {
-      return `**Future Technology Trends:** 🔮
+**Try asking me:**
+- "Explain AI to a beginner"
+- "Help me with JavaScript code"
+- "Write a creative story"
+- "What's machine learning?"
 
-**2024-2030 Predictions:**
-1. **AI Everywhere** - Integrated into all apps
-2. **Quantum Computing** - Solving complex problems
-3. **Web3 & Metaverse** - New digital experiences
-4. **Sustainable Tech** - Green technology focus
+I'm here to help! 😊`,
+      timestamp: new Date().toISOString()
+    }])
+  }
 
-**Impact on Daily Life:**
-- Personalized education
-- Smart healthcare
-- Automated transportation
-- Enhanced creativity tools`
-    }
-    
-    return AI_RESPONSES.general[Math.floor(Math.random() * AI_RESPONSES.general.length)] + 
-           `\n\n**You asked:** "${userMessage.substring(0, 80)}${userMessage.length > 80 ? '...' : ''}"`
-  }, [])
+  const handleSendMessage = (message) => {
+    if (!message.trim() || isLoading) return
 
-  const handleSendMessage = useCallback((content) => {
-    if (!content.trim() || isLoading) return
-
-    const userMessage = {
+    // Add user message
+    const userMsg = {
       id: Date.now(),
       role: 'user',
-      content: content.trim(),
+      content: message,
       timestamp: new Date().toISOString()
     }
-
-    setMessages(prev => [...prev, userMessage])
+    
+    setMessages(prev => [...prev, userMsg])
     setIsLoading(true)
 
-    // Simulate thinking
+    // Simulate AI thinking
     setTimeout(() => {
-      const response = generateResponse(content.trim())
+      const aiResponse = getAIResponse(message)
       
-      const aiMessage = {
+      const aiMsg = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: response,
+        content: aiResponse,
         timestamp: new Date().toISOString()
       }
-
-      setMessages(prev => [...prev, aiMessage])
+      
+      setMessages(prev => [...prev, aiMsg])
       setIsLoading(false)
-    }, 600 + Math.random() * 900)
-  }, [isLoading, generateResponse])
+    }, 800)
+  }
 
-  const handleClearChat = useCallback(() => {
+  const handleClearChat = () => {
     setMessages([])
     setWelcomeComplete(false)
-    localStorage.removeItem('arcmind-chat-v2')
-  }, [])
+  }
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
-      {/* Lazy loaded background effects */}
-      <Suspense fallback={
-        <div className="fixed inset-0 bg-gradient-to-br from-indigo-950/30 via-black to-purple-950/30" />
-      }>
+      {/* Background Effects */}
+      <Suspense fallback={null}>
         <BackgroundOrbs />
         <GradientMesh />
       </Suspense>
+
+      {/* Animated Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-black to-purple-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-900/5 via-transparent to-transparent" />
+        
+        {/* Floating Particles */}
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-cyan-400/30 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${i * 0.2}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <Header onClearChat={handleClearChat} />
@@ -248,6 +184,7 @@ Artificial Intelligence is transforming our world through:
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
               >
                 <WelcomeScreen onComplete={handleWelcomeComplete} />
               </motion.div>
@@ -257,6 +194,7 @@ Artificial Intelligence is transforming our world through:
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
               >
                 <ChatContainer
                   messages={messages}
@@ -268,10 +206,28 @@ Artificial Intelligence is transforming our world through:
           </AnimatePresence>
         </main>
 
-        <footer className="py-3 px-4 border-t border-white/10 backdrop-blur-lg bg-black/60 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>Hosted on Cloudflare Pages • Unlimited & Free Forever</span>
+        {/* Footer */}
+        <footer className="py-3 px-4 border-t border-white/10 backdrop-blur-lg bg-black/40">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <Brain className="w-3 h-3" />
+                </div>
+                <span className="text-sm text-gray-400">ArcMind AI • Local & Private</span>
+              </div>
+              
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span>Online</span>
+                </div>
+                <div className="hidden md:flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-cyan-400" />
+                  <span>Animated UI</span>
+                </div>
+              </div>
+            </div>
           </div>
         </footer>
       </div>
