@@ -1,7 +1,6 @@
-// effects/BackgroundOrbs.jsx
 import { useEffect, useRef } from 'react'
 
-export default function BackgroundOrbs() {
+const BackgroundOrbs = () => {
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -12,9 +11,8 @@ export default function BackgroundOrbs() {
     let animationId
 
     const resize = () => {
-      canvas.width = window.innerWidth * window.devicePixelRatio
-      canvas.height = window.innerHeight * window.devicePixelRatio
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
     }
 
     const colors = [
@@ -23,12 +21,12 @@ export default function BackgroundOrbs() {
       'rgba(6, 182, 212, 0.1)'
     ]
 
-    const orbs = Array.from({ length: 4 }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      size: Math.random() * 60 + 40,
-      speedX: (Math.random() - 0.5) * 0.2,
-      speedY: (Math.random() - 0.5) * 0.2,
+    const orbs = Array.from({ length: 5 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 80 + 40,
+      speedX: (Math.random() - 0.5) * 0.3,
+      speedY: (Math.random() - 0.5) * 0.3,
       color: colors[Math.floor(Math.random() * colors.length)]
     }))
 
@@ -36,14 +34,17 @@ export default function BackgroundOrbs() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       orbs.forEach(orb => {
+        // Move orb
         orb.x += orb.speedX
         orb.y += orb.speedY
 
-        if (orb.x > window.innerWidth + orb.size) orb.x = -orb.size
-        if (orb.x < -orb.size) orb.x = window.innerWidth + orb.size
-        if (orb.y > window.innerHeight + orb.size) orb.y = -orb.size
-        if (orb.y < -orb.size) orb.y = window.innerHeight + orb.size
+        // Bounce off edges
+        if (orb.x > canvas.width + orb.size) orb.x = -orb.size
+        if (orb.x < -orb.size) orb.x = canvas.width + orb.size
+        if (orb.y > canvas.height + orb.size) orb.y = -orb.size
+        if (orb.y < -orb.size) orb.y = canvas.height + orb.size
 
+        // Draw orb
         const gradient = ctx.createRadialGradient(
           orb.x, orb.y, 0,
           orb.x, orb.y, orb.size
@@ -61,8 +62,8 @@ export default function BackgroundOrbs() {
     }
 
     resize()
-    animate()
     window.addEventListener('resize', resize)
+    animate()
 
     return () => {
       window.removeEventListener('resize', resize)
@@ -74,7 +75,9 @@ export default function BackgroundOrbs() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none"
-      style={{ opacity: 0.4 }}
+      style={{ opacity: 0.3 }}
     />
   )
 }
+
+export default BackgroundOrbs
