@@ -1,149 +1,178 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Send, Paperclip, Mic, Smile,
-  Image, Code, Zap, WifiOff
-} from 'lucide-react'
-
-const MAX_CHARS = 2000
+import { Send, Sparkles, Zap, Code, Lightbulb, Book, MessageSquare, Cpu } from 'lucide-react'
 
 const InputArea = ({ onSendMessage, isLoading, connectionStatus }) => {
   const [message, setMessage] = useState('')
+  const [rows, setRows] = useState(1)
   const textareaRef = useRef(null)
 
-  const quickPrompts = [
-    'Explain quantum computing',
-    'Write a poem about AI',
-    'Help me debug this code',
-    'Plan a workout routine',
-    'Translate this to Spanish',
-    'Create a business plan',
-    'Explain machine learning',
-    'Write a short story'
+  // Smart prompts based on context
+  const smartPrompts = [
+    { icon: Code, text: 'Explain AI to a beginner', category: 'tech' },
+    { icon: Lightbulb, text: 'Write a creative story about space', category: 'creative' },
+    { icon: Book, text: 'What is machine learning?', category: 'education' },
+    { icon: Zap, text: 'How to write clean code?', category: 'tech' },
+    { icon: MessageSquare, text: 'Tell me a programming joke', category: 'fun' },
+    { icon: Sparkles, text: 'Future of technology in 2030', category: 'future' },
+    { icon: Cpu, text: 'Build a simple JavaScript function', category: 'code' },
+    { icon: Book, text: 'Explain blockchain simply', category: 'tech' },
   ]
 
-  /* ---------- Auto resize ---------- */
   useEffect(() => {
-    const el = textareaRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`
+    adjustTextareaHeight()
   }, [message])
 
-  /* ---------- Submit ---------- */
-  const send = () => {
-    if (!message.trim() || isLoading || connectionStatus !== 'connected') return
-    onSendMessage(message.trim())
-    setMessage('')
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = 'auto'
+      const newHeight = Math.min(textarea.scrollHeight, 150)
+      textarea.style.height = `${newHeight}px`
+      setRows(newHeight > 40 ? 2 : 1)
+    }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    send()
+    if (message.trim() && !isLoading) {
+      onSendMessage(message.trim())
+      setMessage('')
+      setRows(1)
+    }
   }
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      send()
+      handleSubmit(e)
     }
   }
 
-  const handlePrompt = (prompt) => {
-    setMessage(prev =>
-      prev ? `${prev}\n${prompt}` : prompt
-    )
+  const handlePromptClick = (promptText) => {
+    setMessage(promptText)
+    textareaRef.current?.focus()
   }
 
-  /* ---------- UI ---------- */
   return (
     <motion.form
-      onSubmit={handleSubmit}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      onSubmit={handleSubmit}
       className="relative"
     >
-      {/* Offline Warning */}
-      {connectionStatus !== 'connected' && (
-        <div className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-400 text-sm">
-          <WifiOff className="w-3 h-3" />
-          Offline mode – responses may be limited
+      {/* Local AI Indicator */}
+      <div className="mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm">
+          <Cpu className="w-3 h-3" />
+          <span>💡 Powered by Local Intelligence • No API Required</span>
         </div>
-      )}
+      </div>
 
-      {/* Quick Prompts */}
+      {/* Smart Prompts */}
       <div className="flex flex-wrap gap-2 mb-3">
-        {quickPrompts.map((prompt, i) => (
+        {smartPrompts.map((prompt, index) => (
           <motion.button
-            key={i}
+            key={index}
             type="button"
-            onClick={() => handlePrompt(prompt)}
-            whileHover={{ scale: 1.05 }}
+            onClick={() => handlePromptClick(prompt.text)}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-1.5 text-xs rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 flex items-center gap-1.5 group"
           >
-            <Zap className="w-3 h-3 text-yellow-400" />
-            {prompt.split(' ').slice(0, 3).join(' ')}…
+            <prompt.icon className="w-3 h-3 group-hover:scale-110 transition-transform" />
+            <span>{prompt.text.split(' ').slice(0, 3).join(' ')}...</span>
           </motion.button>
         ))}
       </div>
 
-      {/* Input Box */}
+      {/* Input Container */}
       <div className="relative">
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl rounded-2xl" />
-
-        <div className="relative glass rounded-2xl overflow-hidden">
-          {/* Toolbar */}
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-white/10">
-            <button type="button" className="p-1.5 hover:bg-white/5 rounded">
-              <Code className="w-4 h-4" />
-            </button>
-            <button type="button" className="p-1.5 hover:bg-white/5 rounded">
-              <Image className="w-4 h-4" />
-            </button>
+        {/* Glow Effect */}
+        <motion.div
+          animate={{ 
+            opacity: [0.3, 0.5, 0.3],
+            scale: [1, 1.02, 1]
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl rounded-2xl"
+        />
+        
+        <div className="relative glass border border-white/20 rounded-2xl overflow-hidden backdrop-blur-xl">
+          {/* Top Bar */}
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-white/10 bg-black/30">
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span>Local AI Assistant</span>
+            </div>
             <div className="flex-1" />
-            <span className="text-xs text-gray-400">
-              Enter to send • Shift+Enter new line
+            <span className="text-xs text-gray-400 hidden sm:block">
+              Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded">Enter</kbd> to send • <kbd className="px-1.5 py-0.5 bg-white/10 rounded">Shift+Enter</kbd> for new line
             </span>
           </div>
 
           {/* Main Input */}
-          <div className="p-4 flex gap-3">
-            <div className="flex flex-col gap-2">
-              <Paperclip className="w-4 h-4 text-gray-400" />
-              <Smile className="w-4 h-4 text-gray-400" />
-              <Mic className="w-4 h-4 text-gray-400" />
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              {/* Textarea */}
+              <div className="flex-1 relative">
+                <textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask ArcMind AI anything... (Powered by local intelligence)"
+                  className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm md:text-base resize-none min-h-[40px] max-h-[150px] pr-10"
+                  disabled={isLoading}
+                  rows={rows}
+                />
+                
+                {/* Character counter */}
+                {message.length > 0 && (
+                  <div className="absolute bottom-0 right-0 text-xs text-gray-500">
+                    {message.length}/2000
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <motion.button
+                whileHover={{ scale: message.trim() && !isLoading ? 1.1 : 1 }}
+                whileTap={{ scale: 0.9 }}
+                type="submit"
+                disabled={!message.trim() || isLoading}
+                className={`self-end p-3 rounded-xl flex items-center justify-center transition-all duration-200 relative overflow-hidden ${
+                  message.trim() && !isLoading
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 cursor-pointer shadow-lg'
+                    : 'bg-white/10 cursor-not-allowed'
+                }`}
+              >
+                {message.trim() && !isLoading && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400"
+                    animate={{ 
+                      x: ['-100%', '100%']
+                    }}
+                    transition={{ 
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                  />
+                )}
+                <Send className={`w-4 h-4 relative z-10 ${message.trim() && !isLoading ? 'text-white' : 'text-gray-400'}`} />
+              </motion.button>
             </div>
-
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value.slice(0, MAX_CHARS))}
-              onKeyDown={handleKeyDown}
-              disabled={isLoading}
-              placeholder="Message Arcmind AI…"
-              className="flex-1 bg-transparent resize-none outline-none text-sm md:text-base min-h-[40px] max-h-[120px]"
-            />
-
-            <motion.button
-              whileHover={{ scale: message.trim() ? 1.05 : 1 }}
-              whileTap={{ scale: 0.95 }}
-              type="submit"
-              disabled={!message.trim() || isLoading || connectionStatus !== 'connected'}
-              className={`p-3 rounded-xl ${
-                message.trim() && connectionStatus === 'connected'
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600'
-                  : 'bg-white/10 cursor-not-allowed'
-              }`}
-            >
-              <Send className="w-4 h-4" />
-            </motion.button>
           </div>
 
-          {/* Footer */}
-          <div className="px-4 py-2 border-t border-white/10 flex justify-between text-xs text-gray-400">
-            <span>AI may make mistakes. Verify critical info.</span>
-            <span>{message.length}/{MAX_CHARS}</span>
+          {/* Bottom Bar */}
+          <div className="px-4 py-2.5 border-t border-white/10 bg-black/30 flex items-center justify-between">
+            <div className="text-xs text-gray-400">
+              💡 All responses generated locally • Your data stays private
+            </div>
+            <div className="text-xs text-gray-400 hidden md:block">
+              Powered by advanced logic • No internet required
+            </div>
           </div>
         </div>
       </div>
