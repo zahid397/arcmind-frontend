@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useChat } from '@/hooks/useChat'; // আমাদের কাস্টম হুক
-import { Send, Bot, User, Sparkles, Activity, ShieldCheck } from 'lucide-react';
+import { useChat } from '@/hooks/useChat';
+import { Send, Bot, User, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function Home() {
-  const { messages, loading, sendMessage } = useChat();
+  // 🔴 FIX: 'isLoading' কে 'loading' হিসেবে রিনেম করা হলো যাতে তোর কোড না ভাঙ্গে
+  const { messages, isLoading: loading, sendMessage } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -59,11 +60,11 @@ export default function Home() {
           >
             {/* Avatar Icon */}
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-white/10 shadow-lg ${
-              msg.role === 'ai' 
+              msg.role === 'ai' || msg.role === 'assistant' 
                 ? 'bg-gradient-to-br from-purple-900/40 to-black text-purple-400' 
                 : 'bg-gradient-to-br from-blue-900/40 to-black text-blue-400'
             }`}>
-              {msg.role === 'ai' ? <Sparkles className="w-5 h-5" /> : <User className="w-5 h-5" />}
+              {msg.role === 'ai' || msg.role === 'assistant' ? <Sparkles className="w-5 h-5" /> : <User className="w-5 h-5" />}
             </div>
 
             {/* Message Bubble */}
