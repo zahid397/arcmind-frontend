@@ -6,6 +6,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
+  // হাইড্রেডশন ফিক্সের জন্য লোডিং স্টেট
   if (!mounted) return <div className="min-h-screen bg-[#0f172a]" />
 
   return (
