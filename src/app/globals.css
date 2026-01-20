@@ -3,42 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 263.4 70% 50.4%; /* Purple */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.75rem;
-  }
+  :root { --background: 222 47% 11%; --foreground: 210 40% 98%; --border: 217 33% 17%; }
+  body { @apply bg-background text-foreground; background: radial-gradient(circle at 50% 0%, #0f172a 0%, #1e1b4b 50%, #0c0a1a 100%); min-height: 100vh; }
 }
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply text-foreground;
-    /* এই যে তোর পার্পল গ্রেডিয়েন্ট */
-    background: linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%); 
-    min-height: 100vh;
-  }
-}
-
-.glass-card {
-  @apply bg-white/5 border border-white/10 backdrop-blur-lg shadow-xl;
-}
+.glass { @apply bg-white/5 backdrop-blur-lg border border-white/10; }
+.gradient-text { @apply bg-gradient-to-r from-arc-blue to-arc-cyan bg-clip-text text-transparent; }
