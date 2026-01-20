@@ -1,20 +1,29 @@
-// src/services/api.ts
-import { AgentResponse } from '@/types';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export async function sendMessageToAgent(content: string) {
+  try {
+    const response = await fetch(`${API_URL}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    });
 
-export const sendMessageToAgent = async (prompt: string): Promise<AgentResponse> => {
-  if (!API_URL) throw new Error('API URL not configured');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
 
-  const response = await fetch(`${API_URL}/agent/command`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
+    const data = await response.json();
+    // Backend returns { response, transaction, suggestions }
+    // Mapping it to ensure frontend reads 'message' correctly if needed
+    return {
+        message: data.response, 
+        transaction: data.transaction,
+        suggestions: data.suggestions
+    };
+  } catch (error) {
+    console.error('Error connecting to backend:', error);
+    throw error;
   }
-
-  return response.json();
-};
+}
