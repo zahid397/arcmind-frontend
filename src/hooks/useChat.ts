@@ -1,57 +1,61 @@
-// src/hooks/useChat.ts
-import { useState } from 'react';
-import { Message } from '@/types';
-import { sendMessageToAgent } from '@/services/api';
+import { useState } from 'react'
+
+interface Message {
+  id: string
+  content: string
+  role: 'user' | 'assistant'
+  timestamp: Date
+  transaction?: {
+    hash: string
+    amount: number
+    status: 'pending' | 'confirmed' | 'failed'
+  }
+}
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      role: 'ai',
-      content: '👋 Welcome to ArcMind! Connected to Live Server. How can I help you?',
+      content: 'Hello! I\'m ArcMind, your autonomous commerce agent. I can help you find deals, make purchases, and manage your on-chain treasury. What would you like me to do?',
+      role: 'assistant',
       timestamp: new Date(),
     },
-  ]);
-  const [loading, setLoading] = useState(false);
+  ])
+  const [isLoading, setIsLoading] = useState(false)
 
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
-
-    // ১. ইউজারের মেসেজ অ্যাড করা
-    const userMsg: Message = {
+    const userMessage: Message = {
       id: Date.now().toString(),
-      role: 'user',
       content,
+      role: 'user',
       timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    setLoading(true);
-
-    try {
-      // ২. সার্ভারে কল করা
-      const data = await sendMessageToAgent(content);
-
-      // ৩. AI-এর উত্তর অ্যাড করা
-      const aiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content: data.message,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-    } catch (error) {
-      console.error(error);
-      const errorMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content: '⚠️ Error: Could not reach ArcMind server. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setLoading(false);
     }
-  };
 
-  return { messages, loading, sendMessage };
-};
+    setMessages(prev => [...prev, userMessage])
+    setIsLoading(true)
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: `I've found 3 deals matching "${content}". Best option: RTX 4080 for $799 (22% below market). Should I proceed with purchase using 799 USDC from treasury?`,
+      role: 'assistant',
+      timestamp: new Date(),
+      transaction: {
+        hash: '0x' + Math.random().toString(16).slice(2, 42),
+        amount: 799,
+        status: 'confirmed'
+      }
+    }
+
+    setMessages(prev => [...prev, assistantMessage])
+    setIsLoading(false)
+  }
+
+  return {
+    messages,
+    isLoading,
+    sendMessage,
+  }
+}
