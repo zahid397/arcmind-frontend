@@ -1,36 +1,44 @@
-import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
-import './globals.css';
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from '@/components/theme-provider'
 
-// ফন্ট লোড করা হচ্ছে
-const inter = Inter({ 
-  subsets: ['latin'], 
-  variable: '--font-sans' 
-});
-
-const mono = JetBrains_Mono({ 
-  subsets: ['latin'], 
-  variable: '--font-mono' 
-});
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ArcMind | AI Commerce Agent',
-  description: 'Autonomous AI Agent for seamless commerce via Circle Payment.',
-  icons: {
-    icon: '/favicon.ico', // যদি আইকন থাকে
-  },
-};
+  title: 'ArcMind | AI-Powered Autonomous Commerce',
+  description: 'Next-generation agentic commerce on Arc using USDC and Circle infrastructure',
+  keywords: ['AI Agent', 'Autonomous Commerce', 'Arc', 'USDC', 'Circle'],
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${mono.variable} font-sans antialiased bg-black text-white`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster 
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'hsl(var(--background))',
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--border))',
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }
