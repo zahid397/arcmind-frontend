@@ -1,27 +1,18 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import ClientLayout from '@/app/components/layout/ClientLayout'
+import ClientLayout from '@/components/layout/ClientLayout'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
-export const metadata: Metadata = {
-  title: 'ArcMind',
-  description: 'AI Chat Application',
-}
+export const metadata: Metadata = { title: 'ArcMind', description: 'AI Commerce Agent' }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        {/* ClientLayout এর ভেতরে চিলড্রেন র‍্যাপ করা হলো যাতে এরর না খায় */}
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${mono.variable} font-sans antialiased`}>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
