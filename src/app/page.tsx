@@ -1,131 +1,111 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useChat } from '@/hooks/useChat';
-import { Send, Bot, User, Sparkles, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { CreditCard, Zap, Globe, Rocket, Wallet, Settings } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  // 🔴 FIX: 'isLoading' কে 'loading' হিসেবে রিনেম করা হলো যাতে তোর কোড না ভাঙ্গে
-  const { messages, isLoading: loading, sendMessage } = useChat();
-  const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // নতুন মেসেজ আসলে অটোমেটিক নিচে স্ক্রল করবে
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // সেন্ড বাটন বা এন্টার চাপলে কাজ করবে
-  const handleSend = () => {
-    if (!input.trim()) return;
-    sendMessage(input);
-    setInput('');
-  };
+  // হুবহু ছবির মতো ডাটা
+  const [balance, setBalance] = useState(1.00);
+  const [txCount, setTxCount] = useState(0);
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white font-sans overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center p-4 md:p-8 font-sans text-white">
       
-      {/* 🟢 Header / Navbar */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-tr from-purple-600 to-blue-600 p-2.5 rounded-xl shadow-lg shadow-purple-900/20 ring-1 ring-white/10">
-            <Bot className="w-6 h-6 text-white" />
+      {/* 🚀 Header Badge */}
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="mt-4 mb-8 px-6 py-2 rounded-full bg-blue-900/30 border border-blue-500/30 flex items-center gap-2"
+      >
+        <Rocket className="w-4 h-4 text-orange-400" />
+        <span className="text-sm font-medium text-blue-200">Powered by Arc + Circle + Gemini</span>
+      </motion.div>
+
+      {/* 🟢 Title */}
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="text-center mb-12 space-y-2"
+      >
+        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/20">
+          <Wallet className="w-10 h-10 text-white" />
+        </div>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+          API Wallet Agent
+        </h1>
+        <p className="text-gray-400 text-lg">Real-time USDC Micropayments for AI Services</p>
+      </motion.div>
+
+      {/* 💳 Stats Grid (Like your screenshots) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mb-8">
+        
+        {/* Balance Card */}
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          className="glass-card p-8 rounded-2xl flex flex-col items-center justify-center space-y-3"
+        >
+          <div className="p-3 bg-yellow-500/20 rounded-xl">
+             <CreditCard className="w-8 h-8 text-yellow-400" />
           </div>
+          <h2 className="text-3xl font-bold">${balance.toFixed(2)}</h2>
+          <p className="text-gray-400 text-sm">Wallet Balance</p>
+        </motion.div>
+
+        {/* Transactions Card */}
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          className="glass-card p-8 rounded-2xl flex flex-col items-center justify-center space-y-3"
+        >
+          <div className="p-3 bg-orange-500/20 rounded-xl">
+             <Zap className="w-8 h-8 text-orange-400" />
+          </div>
+          <h2 className="text-3xl font-bold">{txCount}</h2>
+          <p className="text-gray-400 text-sm">Transactions</p>
+        </motion.div>
+
+        {/* Protocol Card */}
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          className="glass-card p-8 rounded-2xl flex flex-col items-center justify-center space-y-3"
+        >
+          <div className="p-3 bg-blue-500/20 rounded-xl">
+             <Globe className="w-8 h-8 text-blue-400" />
+          </div>
+          <h2 className="text-3xl font-bold">x402</h2>
+          <p className="text-gray-400 text-sm">Protocol</p>
+        </motion.div>
+      </div>
+
+      {/* ⚙️ Configuration Section */}
+      <div className="w-full max-w-4xl glass-card p-6 md:p-8 rounded-2xl">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-green-500/20 rounded-lg">
+            <Settings className="w-5 h-5 text-green-400" />
+          </div>
+          <h3 className="text-xl font-bold">Provider Configuration</h3>
+        </div>
+
+        <div className="space-y-4">
           <div>
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
-              ArcMind
-            </h1>
-            <p className="text-[10px] text-gray-400 font-mono tracking-wider flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-green-500" /> PRODUCTION READY
-            </p>
-          </div>
-        </div>
-        
-        {/* Status Badge */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          <span className="text-xs font-mono font-semibold text-green-400">ONLINE</span>
-        </div>
-      </header>
-
-      {/* 💬 Chat Container */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 no-scrollbar">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}
-          >
-            {/* Avatar Icon */}
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-white/10 shadow-lg ${
-              msg.role === 'ai' || msg.role === 'assistant' 
-                ? 'bg-gradient-to-br from-purple-900/40 to-black text-purple-400' 
-                : 'bg-gradient-to-br from-blue-900/40 to-black text-blue-400'
-            }`}>
-              {msg.role === 'ai' || msg.role === 'assistant' ? <Sparkles className="w-5 h-5" /> : <User className="w-5 h-5" />}
-            </div>
-
-            {/* Message Bubble */}
-            <div className={`max-w-[85%] md:max-w-[70%] p-4 rounded-2xl text-sm md:text-base leading-relaxed shadow-xl backdrop-blur-sm ${
-              msg.role === 'user' 
-                ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-[#151515] border border-white/10 text-gray-200 rounded-tl-none'
-            }`}>
-              {/* Bold Text Rendering */}
-              {msg.content.split('**').map((part, i) => 
-                i % 2 === 1 ? <strong key={i} className="text-white font-bold bg-white/10 px-1 rounded">{part}</strong> : part
-              )}
+            <label className="block text-sm text-gray-400 mb-2">Provider URL</label>
+            <div className="bg-[#1a1b26] p-4 rounded-lg text-gray-300 font-mono text-sm border border-white/5 break-all">
+              https://api-wallet-agent-1.onrender.com
             </div>
           </div>
-        ))}
-
-        {/* Loading Animation */}
-        {loading && (
-          <div className="flex gap-4 animate-pulse">
-            <div className="w-10 h-10 rounded-full bg-purple-900/20 flex items-center justify-center border border-white/10">
-              <Sparkles className="w-5 h-5 text-purple-400 animate-spin" />
-            </div>
-            <div className="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl rounded-tl-none flex gap-1.5 items-center">
-              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
-              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-150" />
-              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-300" />
-            </div>
+          
+          <div>
+             <label className="block text-sm text-gray-400 mb-2">Backend URL</label>
+             <div className="bg-[#1a1b26] p-4 rounded-lg text-gray-300 font-mono text-sm border border-white/5 break-all">
+               https://arcmind-backend.onrender.com
+             </div>
           </div>
-        )}
-        
-        {/* Invisible div for auto-scroll */}
-        <div ref={messagesEndRef} className="h-4" />
-      </main>
-
-      {/* ⌨️ Input Area */}
-      <div className="p-4 border-t border-white/10 bg-black/80 backdrop-blur-xl pb-6">
-        <div className="max-w-4xl mx-auto relative group">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Command ArcMind (e.g., 'Check Balance' or 'Buy iPhone')..."
-            className="w-full bg-[#111] border border-white/10 text-white rounded-2xl py-4 pl-6 pr-14 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-gray-600 shadow-inner group-hover:border-white/20"
-          />
-          <button
-            onClick={handleSend}
-            disabled={loading || !input.trim()}
-            className="absolute right-2 top-2 bottom-2 aspect-square bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-purple-500/25 transform active:scale-95"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* Footer Info */}
-        <div className="mt-3 flex justify-center gap-6 text-[10px] text-gray-600 font-mono opacity-60">
-          <span className="flex items-center gap-1">● SERVER: ONLINE</span>
-          <span className="flex items-center gap-1">● ENCRYPTION: 256-BIT</span>
-          <span className="flex items-center gap-1">● v1.0.2 STABLE</span>
         </div>
       </div>
+
+      <p className="mt-12 text-gray-500 text-sm max-w-2xl text-center">
+        The future of API payments is here. Pay per request with USDC on Arc blockchain, powered by x402-style web-native micropayments.
+      </p>
     </div>
   );
 }
