@@ -46,7 +46,7 @@ export const useChat = ({ onTransaction }: UseChatProps = {}) => {
       content,
       role: 'user',
       timestamp: new Date(),
-      status: 'pending'
+      status: 'pending' // এখানে ঠিক আছে কারণ এটা টাইপ করা অবজেক্ট
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -73,9 +73,13 @@ export const useChat = ({ onTransaction }: UseChatProps = {}) => {
         status: 'success'
       };
 
+      // ✅ FIX: 'as const' ব্যবহার করা হয়েছে টাইপ এরর ফিক্স করতে
       setMessages((prev) => 
-        prev.map(msg => msg.id === userMsg.id ? { ...msg, status: 'success' } : msg)
-            .concat(aiMsg)
+        prev.map(msg => 
+          msg.id === userMsg.id 
+            ? { ...msg, status: 'success' as const } 
+            : msg
+        ).concat(aiMsg)
       );
 
       // ৪. ট্রানজেকশন হ্যান্ডেল করা (যদি থাকে)
@@ -100,8 +104,13 @@ export const useChat = ({ onTransaction }: UseChatProps = {}) => {
       console.error('Chat Error:', error);
       toast.error("Connection Failed. Groq API might be busy.");
       
+      // ✅ FIX: এখানেও 'as const' দেওয়া হয়েছে
       setMessages((prev) => 
-        prev.map(msg => msg.id === userMsg.id ? { ...msg, status: 'error' } : msg)
+        prev.map(msg => 
+          msg.id === userMsg.id 
+            ? { ...msg, status: 'error' as const } 
+            : msg
+        )
       );
     } finally {
       setIsLoading(false);
